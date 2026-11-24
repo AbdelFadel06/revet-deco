@@ -3,6 +3,7 @@
 import Image, { type ImageLoader } from 'next/image'
 import type { SanityImageSource } from '@sanity/image-url'
 import { urlFor } from '@/sanity/lib/image'
+import { useSlowConnection } from './useSlowConnection'
 
 export interface SanityImageData {
   asset: { _ref: string } | null
@@ -27,9 +28,13 @@ interface Props {
 
 /**
  * Image Sanity servie directement par le CDN Sanity, à la bonne largeur
- * (pas de double optimisation par Next), avec placeholder flou (LQIP).
+ * (pas de double optimisation par Next), au format le plus léger accepté par
+ * le navigateur (AVIF/WebP), avec placeholder flou (LQIP) et chargement
+ * différé (lazy) sauf pour les images prioritaires.
+ * Connexion lente : qualité réduite pour les images non prioritaires.
  */
 export function SanityImage({ image, alt, aspect, sizes, className, priority, loading }: Props) {
+  const slow = useSlowConnection()
   if (!image?.asset) {
     return <div className={`bg-gold-200/40 ${className ?? ''}`} aria-hidden />
   }
@@ -38,7 +43,7 @@ export function SanityImage({ image, alt, aspect, sizes, className, priority, lo
   const h = aspect ? Math.round(w * aspect) : (image.height ?? 800)
 
   const loader: ImageLoader = ({ width, quality }) => {
-    let b = urlFor(source).width(width).quality(quality ?? 75)
+    let b = urlFor(source).width(width).quality(quality ?? 70)
     if (aspect) b = b.height(Math.round(width * aspect)).fit('crop')
     return b.url()
   }
@@ -51,12 +56,14 @@ export function SanityImage({ image, alt, aspect, sizes, className, priority, lo
       width={w}
       height={h}
       sizes={sizes}
-      quality={75}
+      // 70 : bon compromis netteté / poids (CLAUDE.md §9) ; 50 sur réseau lent.
+      quality={slow && !priority ? 50 : 70}
       priority={priority}
       loading={priority ? undefined : loading}
       placeholder={image.lqip ? 'blur' : 'empty'}
       blurDataURL={image.lqip ?? undefined}
-      className={className}
+      decoding="async"
+      className={`bg-cream-50 ${className ?? ''}`}
     />
   )
 }

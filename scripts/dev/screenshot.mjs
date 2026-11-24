@@ -4,6 +4,7 @@
  *
  *   node scripts/dev/screenshot.mjs <url> <sortie.png> [largeur=390] [hauteur=844] [pleinePage=0] [js]
  *   [js] : expression évaluée avant la capture (ex. un clic sur un bouton)
+ *   SHOT_NET=3g : simule une connexion 3G et liste les vidéos téléchargées
  */
 import { spawn } from 'node:child_process'
 import { mkdtempSync, writeFileSync } from 'node:fs'
@@ -51,6 +52,19 @@ try {
   const h = Number(height)
   await send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 2, mobile: w < 768 })
   await send('Page.enable')
+  const videos = new Set()
+  if (process.env.SHOT_NET === '3g') {
+    await send('Network.enable')
+    // ~ 3G : 400 ms de latence, 750 kb/s
+    await send('Network.emulateNetworkConditions', { offline: false, latency: 400, downloadThroughput: 93750, uploadThroughput: 31250, connectionType: 'cellular3g' })
+    // Ce que rapporte Chrome Android sur un vrai réseau 3G (l'émulation ne le change pas en headless).
+    const fake = `const c = new EventTarget(); c.effectiveType = '3g'; c.saveData = false; Object.defineProperty(navigator, 'connection', { get: () => c });`
+    await send('Page.addScriptToEvaluateOnNewDocument', { source: fake })
+    ws.addEventListener('message', (e) => {
+      const m = JSON.parse(e.data)
+      if (m.method === 'Network.requestWillBeSent' && /\.mp4/.test(m.params.request.url)) videos.add(m.params.request.url.split('/').pop())
+    })
+  }
   await send('Page.navigate', { url })
   await sleep(6000) // compilation à la demande en dev + images
 
@@ -68,6 +82,10 @@ try {
   writeFileSync(out, Buffer.from(data, 'base64'))
   const { result } = await send('Runtime.evaluate', { expression: 'document.documentElement.scrollWidth + "x" + innerWidth' })
   console.log(`ok ${out} (largeur contenu x fenêtre : ${result.value})`)
+  if (process.env.SHOT_NET === '3g') {
+    const { result: conn } = await send('Runtime.evaluate', { expression: 'navigator.connection ? navigator.connection.effectiveType : "?"' })
+    console.log(`connexion vue par la page : ${conn.value} — vidéos demandées : ${videos.size ? [...videos].join(', ') : 'aucune'}`)
+  }
   ws.close()
 } finally {
   chrome.kill()

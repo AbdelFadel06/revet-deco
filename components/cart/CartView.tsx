@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { getCartView, type CartDisplay } from '@/app/actions/cart'
 import { AvailabilityBadge } from '@/components/catalog/badges'
 import { CheckIcon, WhatsAppIcon } from '@/components/ui/icons'
+import { BrandLoader } from '@/components/ui/BrandLoader'
 import { QtyStepper } from '@/components/ui/QtyStepper'
 import { SanityImage } from '@/components/ui/SanityImage'
 import { track } from '@/lib/analytics'
@@ -60,7 +61,7 @@ export function CartView({ shopName, whatsappNumber }: Props) {
   const [confirmClear, setConfirmClear] = useState(false)
 
   if (!hydrated || (items.length > 0 && !view && !error)) {
-    return <p className="py-20 text-center text-brown-700">Chargement du panier…</p>
+    return <BrandLoader compact label="Chargement du panier" />
   }
 
   if (items.length === 0) {

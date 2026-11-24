@@ -196,7 +196,8 @@ export function PatternSheet({
       onClose={onClose}
       onClick={(e) => e.target === dialogRef.current && onClose()}
       aria-labelledby="sheet-title"
-      className="m-0 mt-auto max-h-[92dvh] w-full max-w-none overflow-y-auto bg-cream-50 p-0 backdrop:bg-ink-900/60 sm:m-auto sm:max-w-3xl"
+      // Mobile : carte posée en bas avec 12 px de marge sur les côtés et en bas.
+      className="mx-auto mb-[max(0.75rem,env(safe-area-inset-bottom))] mt-auto max-h-[88dvh] w-[calc(100%-1.5rem)] max-w-none overflow-y-auto bg-cream-50 p-0 shadow-2xl backdrop:bg-ink-900/60 sm:m-auto sm:w-full sm:max-w-3xl"
     >
       {pattern && (
         <div className="grid sm:grid-cols-2">

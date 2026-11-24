@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { SanityImage, type SanityImageData } from '@/components/ui/SanityImage'
+import { useSlowConnection } from '@/components/ui/useSlowConnection'
 import { urlFor } from '@/sanity/lib/image'
 import type { SanityImageSource } from '@sanity/image-url'
 
@@ -11,6 +12,8 @@ export type HeroSlide =
   | (Common & { _type: 'heroVideo'; mp4: string | null; av1: string | null; poster: SanityImageData | null })
 
 const IMAGE_DURATION = 5500
+const noopSubscribe = () => () => {}
+
 
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -30,6 +33,12 @@ export function HeroCarousel({ slides, children }: { slides: HeroSlide[]; childr
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
   const n = slides.length
+  // Connexion lente / économiseur de données : pas de vidéo, seulement les images d'attente.
+  const slow = useSlowConnection()
+  // Côté serveur, on ne connaît pas la connexion : aucune vidéo n'est préchargée
+  // tant que la page n'a pas vérifié le réseau dans le navigateur.
+  const mounted = useSyncExternalStore(noopSubscribe, () => true, () => false)
+  const playsVideo = (i: number) => slides[i]?._type === 'heroVideo' && !slow
 
   const goTo = (i: number) => {
     const track = trackRef.current
@@ -40,19 +49,19 @@ export function HeroCarousel({ slides, children }: { slides: HeroSlide[]; childr
   // Photos : avance automatique après un délai. Vidéos : avance à la fin (onEnded).
   useEffect(() => {
     if (paused || n < 2 || prefersReducedMotion()) return
-    if (slides[index]?._type === 'heroVideo') return
+    if (playsVideo(index)) return
     const id = window.setTimeout(() => goTo(index + 1), IMAGE_DURATION)
     return () => window.clearTimeout(id)
     // goTo ne dépend que de refs et de n
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [index, paused, n, slides])
+  }, [index, paused, n, slides, slow])
 
   // Lecture : uniquement la diapositive visible.
   useEffect(() => {
     const reduced = prefersReducedMotion()
     videoRefs.current.forEach((v, i) => {
       if (!v) return
-      if (i === index && !reduced) {
+      if (i === index && !reduced && !slow) {
         v.play().catch(() => {
           // Lecture refusée (économie de données…) : l'image d'attente reste affichée.
         })
@@ -60,7 +69,7 @@ export function HeroCarousel({ slides, children }: { slides: HeroSlide[]; childr
         v.pause()
       }
     })
-  }, [index])
+  }, [index, slow])
 
   const current = slides[index]
 
@@ -106,23 +115,37 @@ export function HeroCarousel({ slides, children }: { slides: HeroSlide[]; childr
                     className="absolute inset-0 hidden size-full scale-110 object-cover blur-2xl brightness-75 sm:block"
                   />
                 )}
-                <video
-                  ref={(el) => {
-                    videoRefs.current[i] = el
-                  }}
-                  muted
-                  playsInline
-                  loop={paused || n === 1}
-                  preload={i <= index + 1 ? 'auto' : 'metadata'}
-                  poster={s.poster?.asset ? urlFor(s.poster as SanityImageSource).width(1080).quality(70).url() : undefined}
-                  onEnded={() => !paused && goTo(i + 1)}
-                  aria-label={s.alt ?? s.caption ?? 'Vidéo de réalisation'}
-                  className="absolute inset-0 size-full object-cover sm:inset-auto sm:right-[7%] sm:top-1/2 sm:h-[76%] sm:w-auto sm:-translate-y-1/2 sm:shadow-2xl sm:ring-1 sm:ring-white/20 sm:aspect-9/16"
-                >
-                  {/* AV1 d'abord (plus léger) ; H.264 lu partout. */}
-                  {s.av1 && <source src={s.av1} type='video/mp4; codecs="av01.0.05M.10"' />}
-                  {s.mp4 && <source src={s.mp4} type="video/mp4" />}
-                </video>
+                {/* Cadre de la vidéo : plein écran sur mobile, vertical à droite sur ordinateur. */}
+                <div className="absolute inset-0 overflow-hidden sm:inset-auto sm:right-[7%] sm:top-1/2 sm:aspect-9/16 sm:h-[76%] sm:-translate-y-1/2 sm:shadow-2xl sm:ring-1 sm:ring-white/20">
+                  {/* Image d'attente : vraie image optimisée (prioritaire pour la 1re), visible
+                      tant que la vidéo ne joue pas — et seule affichée sur réseau lent. */}
+                  <SanityImage
+                    image={s.poster}
+                    alt=""
+                    sizes="(min-width: 640px) 45vh, 100vw"
+                    className="absolute inset-0 size-full object-cover"
+                    priority={i === 0}
+                    loading={i <= index + 1 ? 'eager' : 'lazy'}
+                  />
+                  <video
+                    ref={(el) => {
+                      videoRefs.current[i] = el
+                    }}
+                    muted
+                    playsInline
+                    loop={paused || n === 1}
+                    // Seules la vidéo affichée et la suivante se téléchargent ; rien sur réseau lent
+                    // ni avant que le navigateur ait vérifié la connexion.
+                    preload={!mounted || slow ? 'none' : i === index ? 'auto' : i === index + 1 ? 'metadata' : 'none'}
+                    onEnded={() => !paused && goTo(i + 1)}
+                    aria-label={s.alt ?? s.caption ?? 'Vidéo de réalisation'}
+                    className="absolute inset-0 size-full object-cover"
+                  >
+                    {/* AV1 d'abord (plus léger) ; H.264 lu partout. */}
+                    {s.av1 && <source src={s.av1} type='video/mp4; codecs="av01.0.05M.10"' />}
+                    {s.mp4 && <source src={s.mp4} type="video/mp4" />}
+                  </video>
+                </div>
               </>
             )}
           </div>

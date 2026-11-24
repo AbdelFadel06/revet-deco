@@ -69,7 +69,7 @@ export default async function HomePage() {
           <div className="mx-auto mt-2 h-px w-16 bg-gold-400" />
           <div className="mx-auto mt-8 grid max-w-6xl grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 lg:gap-4">
             {categories.map((c, i) => (
-              <CategoryCard key={c._id} category={c} priority={i < 2} wideOnMobile={i === 0} />
+              <CategoryCard key={c._id} category={c} wideOnMobile={i === 0} />
             ))}
           </div>
         </section>
