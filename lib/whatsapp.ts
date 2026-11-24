@@ -48,7 +48,6 @@ function render(totals: CartTotals, settings: SiteSettingsForOrder, detail: Deta
   }
   parts.push(
     `Total estimé : ${formatPrice(totals.total)}`,
-    '(Disponibilité et total à confirmer)',
   )
   // Pas de « Nom / Quartier » : l'équipe les demande plus tard dans la conversation,
   // au moment du paiement et de la livraison (moins de frein à l'envoi).

@@ -23,7 +23,7 @@ On construit un **site catalogue avec panier**, **sans paiement en ligne** :
 - Pas de quantités en stock affichées. Le stock réel est peu fiable (ventes notées sur papier, saisies dans l'app **Shopm** tous les 1 à 2 jours, pas d'inventaire récent, certains stocks négatifs).
 - Pas de synchronisation avec Shopm pour l'instant (prévue plus tard, voir §10).
 
-Le site doit toujours dire **« Disponibilité confirmée sur WhatsApp »**. Il ne promet jamais qu'un article est en stock.
+Décision du 2026-11-24 : **aucune mention « Disponibilité confirmée sur WhatsApp »** sur le site ni dans le message (cela freinait l'achat). L'équipe tient les motifs à jour dans le Studio : ce qui est affiché est disponible, sauf badge « Sur commande » ou « Épuisé ». On n'affiche toujours **jamais** de quantité en stock.
 
 ---
 
@@ -95,7 +95,7 @@ La catégorie Noël doit pouvoir être **mise en avant ou masquée** depuis le S
   *(liste indicative, gérée dans Sanity)*
 
 ### 4.2 Navigation (décidée le 2026-11-18)
-1. **Catégorie** (ex. « Revêtement mural ») → grille des produits.
+1. **Catégorie** (ex. « Revêtement mural », révisé le 2026-11-24) → **tous les motifs et produits de la catégorie** sur une seule page, filtres « Tout voir » + un par produit (puis par famille), « Voir plus » par 24, en-tête léger sur fond blanc. Toucher un motif ouvre directement sa fenêtre (ajout au panier sans passer par la page produit). URL : `?produit=…&famille=…#CODE`. La page produit reste accessible (« Fiche complète »).
 2. **Page produit** (ex. « Papier peint autocollant ») → **tous les motifs directement**, avec des boutons de **famille** pour filtrer (Tous · Marbre · Lambris…). Chaque vignette : photo + **code** bien lisible + nom + prix + badge de disponibilité.
 3. Toucher un motif ouvre une **fenêtre** (bottom sheet sur mobile) : grande photo, code, caractéristiques du produit, prix avec palier, quantité, « Ajouter ».
 - La famille filtrée et le motif ouvert sont dans l'URL (`?famille=marbre#PP-M12`) : liens partageables.
@@ -143,7 +143,6 @@ Je souhaite commander :
 • Spray peinture or × 2 → 3 000 F
 
 Total estimé : 15 000 F
-(Disponibilité et total à confirmer)
 ```
 - **Pas de nom ni de quartier** dans le message ni dans le panier (décision du 2026-11-24) : l'équipe les demande dans la conversation au moment du paiement et de la livraison, pour ne pas freiner l'envoi.
 - Le message doit rester lisible si le panier est long. Au-delà d'environ 1 500 caractères, abréger les noms et garder les codes.

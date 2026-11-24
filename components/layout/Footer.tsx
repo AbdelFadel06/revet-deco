@@ -86,8 +86,8 @@ export function Footer({ settings }: { settings: SETTINGS_QUERY_RESULT }) {
         <div className="text-sm">
           <p className="font-medium uppercase tracking-[0.15em] text-gold-400">Commander</p>
           <p className="mt-3 leading-relaxed">
-            Ajoutez vos articles au panier puis envoyez la commande sur WhatsApp. Disponibilité et total confirmés par
-            la boutique.
+            Ajoutez vos articles au panier puis envoyez la commande sur WhatsApp. La boutique vous répond pour le
+            paiement et la livraison.
           </p>
         </div>
       </div>

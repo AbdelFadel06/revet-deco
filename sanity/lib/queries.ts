@@ -130,7 +130,12 @@ export const CATEGORY_QUERY = defineQuery(`
     description,
     "image": image{${IMAGE}},
     "products": *[_type == "product" && category._ref == ^._id] | order(order asc, title asc){
-      ${PRODUCT_CARD}
+      ${PRODUCT_CARD},
+      "patterns": *[_type == "pattern" && product._ref == ^._id] | order(family->order asc, code asc){
+        ${PATTERN_CARD},
+        "familySlug": family->slug.current,
+        "familyTitle": family->title
+      }
     }
   }
 `)

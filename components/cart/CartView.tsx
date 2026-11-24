@@ -180,7 +180,6 @@ export function CartView({ shopName, whatsappNumber }: Props) {
                 <dd className="font-serif text-3xl text-gold-200">{formatPrice(totals.total)}</dd>
               </div>
             </dl>
-            <p className="mt-2 text-xs text-cream-50/60">Disponibilité et total confirmés par la boutique sur WhatsApp.</p>
 
             {/* Bouton : toujours ici, et aussi dans la barre fixe en bas sur mobile */}
             {orderButton(

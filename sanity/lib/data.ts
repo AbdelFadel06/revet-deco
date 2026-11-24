@@ -30,7 +30,7 @@ export const getHome = () =>
   sanityFetch({ query: HOME_QUERY, tags: ['siteSettings', 'category', 'product', 'pattern', 'patternFamily'] })
 
 export const getCategory = (category: string) =>
-  sanityFetch({ query: CATEGORY_QUERY, params: { category }, tags: ['category', 'product', 'pattern'] })
+  sanityFetch({ query: CATEGORY_QUERY, params: { category }, tags: ['category', 'product', 'patternFamily', 'pattern'] })
 
 export const getProduct = (category: string, product: string) =>
   sanityFetch({

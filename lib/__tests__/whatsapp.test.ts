@@ -31,7 +31,6 @@ describe('buildWhatsAppMessage', () => {
         '• Spray peinture or × 2 → 3 000 F',
         '',
         'Total estimé : 15 000 F',
-        '(Disponibilité et total à confirmer)',
       ].join('\n'),
     )
   })

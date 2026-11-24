@@ -149,7 +149,7 @@ export function PatternBrowser({ product, families, patterns }: Props) {
 
 // ---------------------------------------------------------------------------
 
-function PatternSheet({
+export function PatternSheet({
   product,
   pattern,
   onClose,
@@ -276,7 +276,6 @@ function PatternSheet({
             {inCartForPattern > 0 && !added && (
               <p className="text-sm text-brown-700">Déjà {inCartForPattern} dans votre panier.</p>
             )}
-            <p className="text-xs text-brown-700">Disponibilité confirmée sur WhatsApp.</p>
           </div>
         </div>
       )}

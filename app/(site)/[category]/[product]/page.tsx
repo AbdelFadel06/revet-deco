@@ -120,7 +120,6 @@ export default async function ProductPage({ params }: PageProps<'/[category]/[pr
             </>
           )}
 
-          <p className="text-sm text-brown-700">Disponibilité confirmée sur WhatsApp.</p>
 
           {data.description && (
             <div className="prose-sm max-w-none text-ink-900 [&_p]:mt-2">

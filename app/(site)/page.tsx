@@ -127,7 +127,7 @@ export default async function HomePage() {
             {[
               ['Choisissez', 'Parcourez les motifs et notez le code de ceux qui vous plaisent.'],
               ['Ajoutez au panier', 'Le prix se calcule tout seul, avec les remises par quantité.'],
-              ['Envoyez sur WhatsApp', 'La boutique confirme la disponibilité, le total et le paiement.'],
+              ['Envoyez sur WhatsApp', 'La boutique vous répond pour le paiement et la livraison.'],
             ].map(([title, text], i) => (
               <li key={title} className="flex gap-4">
                 <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brown-900 font-serif text-lg text-gold-400">
