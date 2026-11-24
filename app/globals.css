@@ -1,26 +1,38 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/*
+ * Tokens de marque Revêt & Déco (voir CLAUDE.md §8).
+ * Utilisables en classes Tailwind : bg-brown-900, text-gold-400, border-gold-200…
+ */
+@theme {
+  --color-brown-900: #40200c;
+  --color-brown-700: #5a3219;
+  --color-gold-400: #c69c6d;
+  --color-gold-200: #e6cfae;
+  --color-cream-50: #faf6f0;
+  --color-ink-900: #1f140c;
+  --color-whatsapp: #25d366;
+  --color-whatsapp-dark: #128c4b;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* Badges de disponibilité */
+  --color-status-ok: #5b7f4f;
+  --color-status-warn: #b7791f;
+  --color-status-out: #8a8580;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-serif: var(--font-gloock), Georgia, serif;
+  --font-sans: var(--font-outfit), system-ui, sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* Fond blanc (demande de la boutique, rendu plus « luxueux ») ; la crème reste pour les accents. */
+  background: #ffffff;
+  color: var(--color-ink-900);
+  font-family: var(--font-sans);
+}
+
+/* Code motif : toujours très lisible. */
+.pattern-code {
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  font-variant-numeric: tabular-nums;
 }
