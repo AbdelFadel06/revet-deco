@@ -87,6 +87,40 @@ export const NAV_CATEGORIES_QUERY = defineQuery(`
 
 // --- Accueil ---------------------------------------------------------------
 
+/** Réalisation / inspiration : médias, motifs et produits liés. */
+const REALISATION_CARD = /* groq */ `
+      _id,
+      title,
+      "kind": coalesce(kind, "realisation"),
+      place,
+      date,
+      "media": coalesce(media[]{
+        _key,
+        _type,
+        caption,
+        _type == "image" => { ${IMAGE} },
+        _type == "beforeAfter" => { "before": before{${IMAGE}}, "after": after{${IMAGE}} },
+        _type == "realisationVideo" => { "mp4": mp4.asset->url, "av1": av1.asset->url, "poster": poster{${IMAGE}} }
+      }, []),
+      "patterns": coalesce(patterns[]->{
+        _id,
+        code,
+        name,
+        "image": coalesce(photos[0], image){${IMAGE}},
+        "productSlug": product->slug.current,
+        "categorySlug": product->category->slug.current
+      }, []),
+      "products": coalesce(products[]->{
+        _id,
+        title,
+        "slug": slug.current,
+        "categorySlug": category->slug.current,
+        "image": mainImage{${IMAGE}}
+      }, [])
+`
+
+const VISIBLE_REALISATION = /* groq */ `_type == "realisation" && isVisible != false && count(media) > 0`
+
 export const HOME_QUERY = defineQuery(`{
   "whyUsImage": *[_type == "siteSettings"][0].whyUsImage{${IMAGE}, alt},
   "heroSlides": coalesce(*[_type == "siteSettings"][0].heroSlides[]{
@@ -119,29 +153,8 @@ export const HOME_QUERY = defineQuery(`{
       "categorySlug": product->category->slug.current,
       "familySlug": family->slug.current
     },
-  "realisations": *[_type == "realisation" && isVisible != false && count(media) > 0]
-    | order(date desc, _createdAt desc)[0...12]{
-      _id,
-      title,
-      place,
-      date,
-      "media": coalesce(media[]{
-        _key,
-        _type,
-        caption,
-        _type == "image" => { ${IMAGE} },
-        _type == "beforeAfter" => { "before": before{${IMAGE}}, "after": after{${IMAGE}} },
-        _type == "realisationVideo" => { "mp4": mp4.asset->url, "poster": poster{${IMAGE}} }
-      }, []),
-      "patterns": coalesce(patterns[]->{
-        _id,
-        code,
-        name,
-        "image": coalesce(photos[0], image){${IMAGE}},
-        "productSlug": product->slug.current,
-        "categorySlug": product->category->slug.current
-      }, [])
-    }
+  "realisations": *[${VISIBLE_REALISATION}]
+    | order(date desc, _createdAt desc)[0...5]{${REALISATION_CARD}}
 }`)
 
 // --- Catégorie -------------------------------------------------------------
@@ -298,4 +311,10 @@ export const PATTERN_PATHS_QUERY = defineQuery(`
     "product": product->slug.current,
     code
   }
+`)
+
+// --- Réalisations & inspirations --------------------------------------------
+
+export const REALISATIONS_QUERY = defineQuery(`
+  *[${VISIBLE_REALISATION}] | order(date desc, _createdAt desc)[0...200]{${REALISATION_CARD}}
 `)

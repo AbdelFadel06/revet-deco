@@ -14,6 +14,7 @@ import {
   PATTERN_PATHS_QUERY,
   PRODUCT_PATHS_QUERY,
   PRODUCT_QUERY,
+  REALISATIONS_QUERY,
   SEARCH_QUERY,
   SETTINGS_QUERY,
 } from './queries'
@@ -30,6 +31,9 @@ export const getNavCategories = () => sanityFetch({ query: NAV_CATEGORIES_QUERY,
 
 export const getHome = () =>
   sanityFetch({ query: HOME_QUERY, tags: ['siteSettings', 'category', 'product', 'pattern', 'patternFamily', 'realisation'] })
+
+export const getRealisations = () =>
+  sanityFetch({ query: REALISATIONS_QUERY, tags: ['realisation', 'pattern', 'product', 'category'] })
 
 export const getCategory = (category: string) =>
   sanityFetch({ query: CATEGORY_QUERY, params: { category }, tags: ['category', 'product', 'patternFamily', 'pattern'] })

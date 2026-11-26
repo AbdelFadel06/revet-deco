@@ -5,7 +5,7 @@ import { ChevronRightIcon } from '@/components/ui/icons'
 import { SanityImage } from '@/components/ui/SanityImage'
 import { HeroCarousel } from '@/components/home/HeroCarousel'
 import { WhyUs } from '@/components/home/WhyUs'
-import { Realisations } from '@/components/home/Realisations'
+import { RealisationGrid } from '@/components/home/Realisations'
 import { ExpandableGrid } from '@/components/ui/ExpandableGrid'
 import { evenSlice } from '@/lib/display'
 import { getHome } from '@/sanity/lib/data'
@@ -116,8 +116,24 @@ export default async function HomePage() {
           </section>
         )}
 
-        {/* Nos dernières réalisations : nombre pair, 4 d'abord puis « Voir plus » */}
-        {realisations.length > 0 && <Realisations items={evenSlice(realisations)} />}
+        {/* Réalisations & inspirations : les 4 plus récentes (nombre pair) + lien vers la page */}
+        {realisations.length > 0 && (
+          <section className="mt-16" aria-labelledby="realisations-title">
+            <div className="flex items-end justify-between gap-4">
+              <h2 id="realisations-title" className="font-serif text-3xl text-brown-900">
+                Réalisations & inspirations
+              </h2>
+              <Link
+                href="/realisations"
+                className="inline-flex min-h-11 shrink-0 items-center gap-1 text-sm font-semibold text-brown-900 underline-offset-4 hover:underline"
+              >
+                Tout voir <ChevronRightIcon className="size-4" />
+              </Link>
+            </div>
+            <p className="mt-1 text-brown-700">Nos chantiers et des idées pour transformer votre intérieur.</p>
+            <RealisationGrid items={evenSlice(realisations.slice(0, 4))} />
+          </section>
+        )}
 
         {/* Pourquoi nous choisir */}
         <WhyUs image={whyUsImage ?? firstImageSlide} />

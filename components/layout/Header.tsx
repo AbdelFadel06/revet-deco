@@ -13,5 +13,6 @@ export async function Header({ shopName, contact }: { shopName: string; contact:
         .filter((p): p is typeof p & { slug: string } => Boolean(p.slug))
         .map((p) => ({ href: `/${c.slug}/${p.slug}`, label: p.title ?? p.slug })),
     }))
+  links.push({ href: '/realisations', label: 'Inspirations', title: 'Réalisations & inspirations', children: [] })
   return <HeaderBar shopName={shopName} links={links} contact={contact} />
 }

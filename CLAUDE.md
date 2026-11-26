@@ -199,11 +199,13 @@ Fichiers dans `sanity/schemaTypes/`. Tous les libellés du Studio sont **en fran
 - `shopmRef` (Avancé)
 - Aperçu dans le Studio : `code — name` + image + couleur selon la disponibilité
 
-### `realisation` (ajouté le 2026-11-26)
-- `title`, `place`, `date` (tri : plus récentes d'abord), `isVisible`
-- `media[]` : `beforeAfter` (`before`, `after`), `image` ou `realisationVideo` (`mp4`, `poster`), légende facultative ; le 1er = couverture
-- `patterns[]` → refs `pattern` (« Motifs utilisés », liens vers les motifs)
-- Affichées sur l'accueil (« Nos dernières réalisations », 12 max, nombre pair, 4 puis « Voir plus ») avec comparateur avant / après glissable
+### `realisation` (ajouté le 2026-11-26) — « Réalisations & inspirations »
+- `kind` : `realisation` (chantier de la boutique) | `inspiration` (idée venue d'ailleurs, badge « Inspiration »)
+- `title`, `place` (masqué pour une inspiration), `date` (tri : plus récentes d'abord), `isVisible`
+- `media[]` : `beforeAfter` (`before`, `after`), `image` ou `realisationVideo` (`mp4`, `av1` optionnel, `poster`) ; le 1er = couverture
+- `patterns[]` et `products[]` → liens « Produits utilisés » / « Ce rendu avec nos produits »
+- Accueil : les 4 plus récentes + « Tout voir » ; page `/realisations` (lien « Inspirations » du menu) avec filtres Tout · Réalisations · Inspirations, 8 puis « Voir plus »
+- Vidéos : `media-source/encode-inspirations.sh` puis `npm run media:inspirations` (AV1 gardé seulement s'il gagne ≥ 15 %). Studio : avertissement au-delà de 8 Mo
 
 ### Structure du Studio (Structure Builder)
 ```

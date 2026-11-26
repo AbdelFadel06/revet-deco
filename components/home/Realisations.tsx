@@ -22,6 +22,12 @@ function formatDate(date: string | null): string | null {
   return Number.isNaN(d.getTime()) ? null : monthYear.format(d)
 }
 
+/** « Cotonou · nov. 2026 » pour une réalisation ; rien pour une inspiration. */
+function subtitleOf(r: Realisation): string | null {
+  if (r.kind === 'inspiration') return null
+  return [r.place, formatDate(r.date)].filter(Boolean).join(' · ') || null
+}
+
 const PlayIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
     <path d="M8 5.5v13a1 1 0 0 0 1.5.86l11-6.5a1 1 0 0 0 0-1.72l-11-6.5A1 1 0 0 0 8 5.5Z" />
@@ -36,29 +42,63 @@ function coverOf(m: Media | undefined): SanityImageData | null {
   return m
 }
 
+type KindFilter = 'tout' | 'realisation' | 'inspiration'
+const FILTERS: { value: KindFilter; label: string }[] = [
+  { value: 'tout', label: 'Tout voir' },
+  { value: 'realisation', label: 'Réalisations' },
+  { value: 'inspiration', label: 'Inspirations' },
+]
+
 /**
- * « Nos dernières réalisations » : cartes (4 puis « Voir plus »), et une
- * fenêtre de visionnage avec comparateur avant / après, photos et vidéos.
+ * Grille de réalisations / inspirations + fenêtre de visionnage (comparateur
+ * avant / après, photos, vidéos, produits liés).
+ * - `paginate` : 8 cartes puis « Voir plus » (page dédiée).
+ * - `filters` : boutons Tout · Réalisations · Inspirations (si les deux existent).
  */
-export function Realisations({ items }: { items: Realisation[] }) {
+export function RealisationGrid({
+  items,
+  paginate = false,
+  filters = false,
+}: {
+  items: Realisation[]
+  paginate?: boolean
+  filters?: boolean
+}) {
   const [openId, setOpenId] = useState<string | null>(null)
+  const [kind, setKind] = useState<KindFilter>('tout')
   const open = items.find((r) => r._id === openId) ?? null
+  const bothKinds = new Set(items.map((r) => r.kind)).size > 1
+  const shown = kind === 'tout' ? items : items.filter((r) => r.kind === kind)
+
+  const cards = shown.map((r) => <RealisationCard key={r._id} realisation={r} onOpen={() => setOpenId(r._id)} />)
+  const gridClass = 'mt-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4'
 
   return (
-    <section className="mt-16" aria-labelledby="realisations-title">
-      <h2 id="realisations-title" className="font-serif text-3xl text-brown-900">
-        Nos dernières réalisations
-      </h2>
-      <p className="mt-1 text-brown-700">Des intérieurs transformés par nos clients, avec nos produits.</p>
-
-      <ExpandableGrid className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4" label="Voir plus de réalisations">
-        {items.map((r) => (
-          <RealisationCard key={r._id} realisation={r} onOpen={() => setOpenId(r._id)} />
-        ))}
-      </ExpandableGrid>
-
+    <>
+      {filters && bothKinds && (
+        <div className="mt-6 flex gap-2 overflow-x-auto scrollbar-none" role="group" aria-label="Filtrer">
+          {FILTERS.map((f) => (
+            <button
+              key={f.value}
+              type="button"
+              onClick={() => setKind(f.value)}
+              aria-pressed={kind === f.value}
+              className="min-h-11 shrink-0 border border-gold-400 px-4 text-sm font-medium text-brown-900 transition aria-pressed:border-brown-900 aria-pressed:bg-brown-900 aria-pressed:text-gold-200"
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      )}
+      {paginate ? (
+        <ExpandableGrid key={kind} initial={8} step={8} className={gridClass} label="Voir plus">
+          {cards}
+        </ExpandableGrid>
+      ) : (
+        <div className={gridClass}>{cards}</div>
+      )}
       {open && <RealisationViewer key={open._id} realisation={open} onClose={() => setOpenId(null)} />}
-    </section>
+    </>
   )
 }
 
@@ -93,6 +133,11 @@ function RealisationCard({ realisation: r, onOpen }: { realisation: Realisation;
 
         {/* Repères : avant/après, vidéo, nombre de médias */}
         <div className="absolute left-2 top-2 flex flex-wrap gap-1">
+          {r.kind === 'inspiration' && (
+            <span className="bg-brown-900/85 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-gold-200">
+              Inspiration
+            </span>
+          )}
           {first?._type === 'beforeAfter' && (
             <span className="bg-white/90 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-brown-900">
               Avant / après
@@ -111,8 +156,8 @@ function RealisationCard({ realisation: r, onOpen }: { realisation: Realisation;
         )}
       </div>
       <p className="mt-2 font-semibold leading-snug text-brown-900">{r.title}</p>
-      {(r.place || r.date) && (
-        <p className="truncate text-sm text-brown-700">{[r.place, formatDate(r.date)].filter(Boolean).join(' · ')}</p>
+      {subtitleOf(r) && (
+        <p className="truncate text-sm text-brown-700">{subtitleOf(r)}</p>
       )}
     </button>
   )
@@ -151,6 +196,7 @@ function RealisationViewer({ realisation: r, onClose }: { realisation: Realisati
   const sizes = '(min-width: 640px) 448px, 100vw'
   const current = r.media[index]
   const patterns = r.patterns.filter((p) => p.code && p.productSlug && p.categorySlug)
+  const products = r.products.filter((p) => p.slug && p.categorySlug)
 
   return (
     <dialog
@@ -180,7 +226,6 @@ function RealisationViewer({ realisation: r, onClose }: { realisation: Realisati
                         ref={(el) => {
                           videoRefs.current[i] = el
                         }}
-                        src={m.mp4}
                         poster={m.poster?.asset ? urlFor(m.poster as SanityImageSource).width(720).quality(70).url() : undefined}
                         muted
                         loop
@@ -189,7 +234,11 @@ function RealisationViewer({ realisation: r, onClose }: { realisation: Realisati
                         preload={i === index && !slow ? 'auto' : 'none'}
                         aria-label={m.caption ?? `Vidéo – ${r.title}`}
                         className="absolute inset-0 size-full object-contain"
-                      />
+                      >
+                        {/* AV1 d'abord (plus léger) ; H.264 lu partout. */}
+                        {m.av1 && <source src={m.av1} type='video/mp4; codecs="av01.0.05M.10"' />}
+                        <source src={m.mp4} type="video/mp4" />
+                      </video>
                     )}
                   </>
                 ) : (
@@ -254,8 +303,8 @@ function RealisationViewer({ realisation: r, onClose }: { realisation: Realisati
           <h3 id="realisation-title" className="pr-10 font-serif text-2xl leading-tight text-brown-900">
             {r.title}
           </h3>
-          {(r.place || r.date) && (
-            <p className="mt-1 text-sm text-brown-700">{[r.place, formatDate(r.date)].filter(Boolean).join(' · ')}</p>
+          {subtitleOf(r) && (
+            <p className="mt-1 text-sm text-brown-700">{subtitleOf(r)}</p>
           )}
           <div className="mt-3 h-px w-12 bg-gold-400" aria-hidden />
           {current?.caption && <p className="mt-3 text-ink-900">{current.caption}</p>}
@@ -281,24 +330,24 @@ function RealisationViewer({ realisation: r, onClose }: { realisation: Realisati
             </div>
           )}
 
-          {patterns.length > 0 && (
+          {(patterns.length > 0 || products.length > 0) && (
             <div className="mt-6">
-              <p className="text-sm font-medium uppercase tracking-[0.12em] text-brown-700">Motifs utilisés</p>
+              <p className="text-sm font-medium uppercase tracking-[0.12em] text-brown-700">
+                {r.kind === 'inspiration' ? 'Ce rendu avec nos produits' : 'Produits utilisés'}
+              </p>
               <ul className="mt-3 flex flex-col gap-2">
                 {patterns.map((p) => (
-                  <li key={p._id}>
-                    <Link
-                      href={patternHref(p.categorySlug!, p.productSlug!, p.code!)}
-                      className="flex min-h-14 items-center gap-3 border border-gold-200 p-1.5 pr-3 transition hover:border-gold-400"
-                    >
-                      <SanityImage image={p.image} alt="" aspect={1} sizes="48px" className="size-12 shrink-0 object-cover" />
-                      <span className="min-w-0 flex-1">
-                        <span className="pattern-code block text-brown-900">{p.code}</span>
-                        <span className="block truncate text-sm text-brown-700">{p.name}</span>
-                      </span>
-                      <ChevronRightIcon className="size-4 shrink-0 text-brown-700" />
-                    </Link>
-                  </li>
+                  <LinkedItem
+                    key={p._id}
+                    href={patternHref(p.categorySlug!, p.productSlug!, p.code!)}
+                    image={p.image}
+                    title={p.code!}
+                    subtitle={p.name}
+                    isCode
+                  />
+                ))}
+                {products.map((p) => (
+                  <LinkedItem key={p._id} href={`/${p.categorySlug}/${p.slug}`} image={p.image} title={p.title ?? ''} />
                 ))}
               </ul>
             </div>
@@ -306,5 +355,32 @@ function RealisationViewer({ realisation: r, onClose }: { realisation: Realisati
         </div>
       </div>
     </dialog>
+  )
+}
+
+function LinkedItem({
+  href,
+  image,
+  title,
+  subtitle,
+  isCode = false,
+}: {
+  href: string
+  image: SanityImageData | null
+  title: string
+  subtitle?: string | null
+  isCode?: boolean
+}) {
+  return (
+    <li>
+      <Link href={href} className="flex min-h-14 items-center gap-3 border border-gold-200 p-1.5 pr-3 transition hover:border-gold-400">
+        <SanityImage image={image} alt="" aspect={1} sizes="48px" className="size-12 shrink-0 object-cover" />
+        <span className="min-w-0 flex-1">
+          <span className={isCode ? 'pattern-code block text-brown-900' : 'block font-semibold text-brown-900'}>{title}</span>
+          {subtitle && <span className="block truncate text-sm text-brown-700">{subtitle}</span>}
+        </span>
+        <ChevronRightIcon className="size-4 shrink-0 text-brown-700" />
+      </Link>
+    </li>
   )
 }

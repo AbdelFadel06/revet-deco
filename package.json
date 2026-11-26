@@ -13,6 +13,7 @@
     "seed:demo": "tsx scripts/seed-demo.ts",
     "seed:photos": "tsx scripts/demo/photos.ts",
     "media:boutique": "tsx scripts/media/upload-boutique.ts",
+    "media:inspirations": "tsx scripts/media/upload-inspirations.ts",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",

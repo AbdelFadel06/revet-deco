@@ -79,11 +79,32 @@ export const structure: StructureResolver = (S) =>
       S.documentTypeListItem('patternFamily').title('Familles de motifs'),
       S.divider(),
       S.listItem()
-        .title('Réalisations')
+        .title('Réalisations & inspirations')
         .schemaType('realisation')
         .child(
-          S.documentTypeList('realisation')
-            .title('Réalisations')
-            .defaultOrdering([{ field: 'date', direction: 'desc' }]),
+          S.list()
+            .title('Réalisations & inspirations')
+            .items([
+              ...(
+                [
+                  ['Réalisations', 'realisation'],
+                  ['Inspirations', 'inspiration'],
+                ] as const
+              ).map(([title, kind]) =>
+                S.listItem()
+                  .title(title)
+                  .schemaType('realisation')
+                  .child(
+                    S.documentTypeList('realisation')
+                      .title(title)
+                      .filter('_type == "realisation" && coalesce(kind, "realisation") == $kind')
+                      .params({ kind })
+                      .initialValueTemplates([S.initialValueTemplateItem('realisation-kind', { kind })])
+                      .defaultOrdering([{ field: 'date', direction: 'desc' }]),
+                  ),
+              ),
+              S.divider(),
+              S.documentTypeListItem('realisation').title('Tout'),
+            ]),
         ),
     ])

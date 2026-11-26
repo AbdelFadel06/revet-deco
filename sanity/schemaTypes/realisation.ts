@@ -2,14 +2,20 @@ import { ImagesIcon } from '@sanity/icons/Images'
 import { defineArrayMember, defineField, defineType } from 'sanity'
 import { VIDEO_MAX_MB, warnHeavyVideo } from './shared'
 
+/** Réalisation = chantier de la boutique ; Inspiration = idée venue d'ailleurs. */
+export const REALISATION_KINDS = [
+  { title: 'Réalisation (chantier de la boutique)', value: 'realisation' },
+  { title: 'Inspiration (idée déco)', value: 'inspiration' },
+]
+
 /**
- * Réalisation de la boutique (chantier client) : avant/après, photos ou
- * courtes vidéos. Affichée sur l'accueil (« Nos dernières réalisations »).
+ * Réalisation ou inspiration : avant/après, photos ou courtes vidéos.
+ * Affichées sur l'accueil et sur la page /realisations.
  * Le 1er média est la couverture de la carte.
  */
 export const realisation = defineType({
   name: 'realisation',
-  title: 'Réalisation',
+  title: 'Réalisation / inspiration',
   type: 'document',
   icon: ImagesIcon,
   fields: [
@@ -20,12 +26,25 @@ export const realisation = defineType({
       description: 'Ex. : Salon en marbre blanc & or',
       validation: (r) => r.required(),
     }),
-    defineField({ name: 'place', title: 'Lieu', type: 'string', description: 'Ex. : Cotonou, Fidjrossè (facultatif)' }),
+    defineField({
+      name: 'kind',
+      title: 'Type',
+      type: 'string',
+      options: { list: REALISATION_KINDS, layout: 'radio' },
+      initialValue: 'realisation',
+      validation: (r) => r.required(),
+    }),
+    defineField({
+      name: 'place',       title: 'Lieu',
+      type: 'string',
+      description: 'Ex. : Cotonou, Fidjrossè (facultatif)',
+      hidden: ({ document }) => document?.kind === 'inspiration',
+    }),
     defineField({
       name: 'date',
-      title: 'Date du chantier',
+      title: 'Date',
       type: 'date',
-      description: 'Les plus récentes s’affichent en premier.',
+      description: 'Date du chantier ou de l’ajout. Les plus récentes s’affichent en premier.',
       initialValue: () => new Date().toISOString().slice(0, 10),
       validation: (r) => r.required(),
     }),
@@ -70,6 +89,13 @@ export const realisation = defineType({
               validation: (r) => [r.required(), r.custom(warnHeavyVideo).warning()],
             }),
             defineField({
+              name: 'av1',
+              title: 'Vidéo AV1 (optionnelle, plus légère)',
+              type: 'file',
+              options: { accept: 'video/mp4' },
+              description: 'Utilisée automatiquement par les navigateurs récents.',
+            }),
+            defineField({
               name: 'poster',
               title: 'Image d’attente',
               type: 'image',
@@ -94,6 +120,13 @@ export const realisation = defineType({
       of: [defineArrayMember({ type: 'reference', to: [{ type: 'pattern' }] })],
     }),
     defineField({
+      name: 'products',
+      title: 'Produits utilisés',
+      type: 'array',
+      description: 'Facultatif : produits de la boutique pour obtenir ce rendu (tasseaux, ruban, sol PVC…).',
+      of: [defineArrayMember({ type: 'reference', to: [{ type: 'product' }] })],
+    }),
+    defineField({
       name: 'isVisible',
       title: 'Afficher sur le site',
       type: 'boolean',
@@ -102,10 +135,10 @@ export const realisation = defineType({
   ],
   orderings: [{ title: 'Plus récentes', name: 'dateDesc', by: [{ field: 'date', direction: 'desc' }] }],
   preview: {
-    select: { title: 'title', place: 'place', date: 'date', media: 'media.0', after: 'media.0.after', poster: 'media.0.poster' },
-    prepare: ({ title, place, date, media, after, poster }) => ({
+    select: { title: 'title', kind: 'kind', place: 'place', date: 'date', media: 'media.0', after: 'media.0.after', poster: 'media.0.poster' },
+    prepare: ({ title, kind, place, date, media, after, poster }) => ({
       title,
-      subtitle: [place, date].filter(Boolean).join(' · '),
+      subtitle: [kind === 'inspiration' ? 'Inspiration' : 'Réalisation', place, date].filter(Boolean).join(' · '),
       media: after ?? poster ?? media,
     }),
   },

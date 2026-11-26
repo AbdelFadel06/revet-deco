@@ -19,7 +19,17 @@ export default defineConfig({
   schema: {
     types: schemaTypes,
     // Pas de « Créer un nouveau » pour les singletons.
-    templates: (templates) => templates.filter(({ schemaType }) => !singletonTypes.has(schemaType)),
+    templates: (templates) => [
+      ...templates.filter(({ schemaType }) => !singletonTypes.has(schemaType)),
+      // « Créer » depuis la liste Réalisations ou Inspirations : type déjà choisi.
+      {
+        id: 'realisation-kind',
+        title: 'Réalisation / inspiration',
+        schemaType: 'realisation',
+        parameters: [{ name: 'kind', type: 'string' }],
+        value: (params: { kind: string }) => ({ kind: params.kind, date: new Date().toISOString().slice(0, 10) }),
+      },
+    ],
   },
   document: {
     actions: (prev, { schemaType }) => {
