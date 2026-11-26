@@ -1,6 +1,5 @@
 import 'server-only'
 
-import { cacheLife, cacheTag } from 'next/cache'
 import type { ClientReturn, QueryParams } from 'next-sanity'
 import { client } from './client'
 
@@ -8,9 +7,11 @@ import { client } from './client'
 export type ContentTag = 'siteSettings' | 'category' | 'product' | 'patternFamily' | 'pattern'
 
 /**
- * Exécute une requête GROQ mise en cache par Next (« use cache »).
- * Le cache dure jusqu'à ce que le webhook Sanity appelle `revalidateTag(tag)`
- * pour un des types dont dépend la requête.
+ * Exécute une requête GROQ mise en cache par Next.js (cache des requêtes `fetch`,
+ * étiqueté par type de document). Le cache dure jusqu'à ce que le webhook Sanity
+ * appelle `revalidateTag(tag)` pour un des types dont dépend la requête.
+ * En développement (Sanity ne peut pas joindre localhost) : 5 secondes, pour voir
+ * les modifications du Studio en rechargeant la page.
  *
  * Les types de retour viennent de Sanity TypeGen (`sanity/types.ts`), qui
  * associe chaque requête `defineQuery` à son type de résultat.
@@ -24,14 +25,7 @@ export async function sanityFetch<const Query extends string>({
   params?: QueryParams
   tags: ContentTag[]
 }): Promise<ClientReturn<Query, unknown>> {
-  'use cache'
-  // Production : cache jusqu'au webhook de Sanity. En développement, Sanity ne peut pas
-  // joindre localhost : cache court pour voir les modifications du Studio au rechargement.
-  // Pas le profil 'seconds' : une expiration < 5 min sort la donnée de la structure
-  // précalculée de la page (erreur « Blocking Route »). Ici : régénération en
-  // arrière-plan chaque seconde, mais expiration à 5 min (seuil documenté).
-  if (process.env.NODE_ENV === 'development') cacheLife({ stale: 30, revalidate: 1, expire: 300 })
-  else cacheLife('max')
-  cacheTag(...tags)
-  return client.fetch<ClientReturn<Query, unknown>>(query, params)
+  return client.fetch<ClientReturn<Query, unknown>>(query, params, {
+    next: { tags, revalidate: process.env.NODE_ENV === 'development' ? 5 : false },
+  })
 }

@@ -38,6 +38,7 @@ Décision du 2026-11-24 : **aucune mention « Disponibilité confirmée sur What
 | Style | **Tailwind CSS** (tokens de marque dans la config, voir §8) |
 | Panier | **Zustand** avec `persist` (localStorage), clé `rd-cart-v1` |
 | Revalidation | Webhook Sanity → `POST /api/revalidate` → `revalidateTag()` |
+| Déploiement | **Cloudflare Workers** via `@opennextjs/cloudflare` (`wrangler.jsonc`, `open-next.config.ts`). ⚠️ **Pas de `cacheComponents`** : incompatible avec le runtime Workers (requêtes bloquées, erreur 1101, constaté le 2026-11-26). Cache classique : `client.fetch(…, { next: { tags } })` dans `sanity/lib/fetch.ts`. Variables publiques dans `.env.production` (versionné) ; secrets dans Cloudflare. Le chemin local contient une apostrophe (`2026's Projects`) qui casse le build OpenNext en local : tester dans un dossier sans apostrophe. |
 | Analytics | Plausible ou Umami + événement `whatsapp_click` |
 | Hébergement | Netlify ou Cloudflare Pages (le plan Hobby de Vercel est réservé à un usage **non commercial**, donc Vercel Pro si on choisit Vercel) |
 
