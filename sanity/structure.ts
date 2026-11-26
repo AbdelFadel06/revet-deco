@@ -77,4 +77,13 @@ export const structure: StructureResolver = (S) =>
             ]),
         ),
       S.documentTypeListItem('patternFamily').title('Familles de motifs'),
+      S.divider(),
+      S.listItem()
+        .title('Réalisations')
+        .schemaType('realisation')
+        .child(
+          S.documentTypeList('realisation')
+            .title('Réalisations')
+            .defaultOrdering([{ field: 'date', direction: 'desc' }]),
+        ),
     ])

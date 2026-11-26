@@ -1,4 +1,5 @@
-import { defineField } from 'sanity'
+import { defineField, type ValidationContext } from 'sanity'
+import { apiVersion } from '../env'
 
 export const availabilityOptions = [
   { title: '✅ Disponible', value: 'disponible' },
@@ -54,4 +55,20 @@ export function orderField() {
     description: 'Les plus petits nombres apparaissent en premier.',
     group: advancedGroup.name,
   })
+}
+
+/** Taille au-delà de laquelle une vidéo est signalée comme trop lourde. */
+export const VIDEO_MAX_MB = 8
+
+/**
+ * Avertissement (non bloquant) si la vidéo dépasse VIDEO_MAX_MB : Sanity ne
+ * compresse pas les vidéos, elles sont servies telles quelles aux visiteurs.
+ */
+export async function warnHeavyVideo(value: { asset?: { _ref?: string } } | undefined, context: ValidationContext) {
+  const ref = value?.asset?._ref
+  if (!ref) return true
+  const size = await context.getClient({ apiVersion }).fetch<number | null>(`*[_id == $ref][0].size`, { ref })
+  if (!size || size <= VIDEO_MAX_MB * 1024 * 1024) return true
+  const mb = (size / 1024 / 1024).toFixed(1).replace('.', ',')
+  return `Vidéo lourde (${mb} Mo, conseillé : moins de ${VIDEO_MAX_MB} Mo) : elle sera lente à charger sur téléphone. Envoyez-la-vous sur WhatsApp ou compressez-la (app « Video Compressor », export 720p de CapCut), puis remplacez-la.`
 }

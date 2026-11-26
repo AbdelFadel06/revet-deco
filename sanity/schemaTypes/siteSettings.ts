@@ -1,6 +1,7 @@
 import { CogIcon } from '@sanity/icons/Cog'
 import { defineArrayMember, defineField, defineType } from 'sanity'
 import { isGoogleMapsUrl } from '../../lib/routes'
+import { warnHeavyVideo } from './shared'
 
 export const siteSettings = defineType({
   name: 'siteSettings',
@@ -43,7 +44,7 @@ export const siteSettings = defineType({
               type: 'file',
               options: { accept: 'video/mp4' },
               description: 'Lue par tous les téléphones. Obligatoire.',
-              validation: (r) => r.required(),
+              validation: (r) => [r.required(), r.custom(warnHeavyVideo).warning()],
             }),
             defineField({
               name: 'av1',

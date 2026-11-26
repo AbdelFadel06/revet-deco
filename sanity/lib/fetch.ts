@@ -4,7 +4,7 @@ import type { ClientReturn, QueryParams } from 'next-sanity'
 import { client } from './client'
 
 /** Un tag de cache par type de document : le webhook invalide `_type`. */
-export type ContentTag = 'siteSettings' | 'category' | 'product' | 'patternFamily' | 'pattern'
+export type ContentTag = 'siteSettings' | 'category' | 'product' | 'patternFamily' | 'pattern' | 'realisation'
 
 /**
  * Exécute une requête GROQ mise en cache par Next.js (cache des requêtes `fetch`,

@@ -199,6 +199,12 @@ Fichiers dans `sanity/schemaTypes/`. Tous les libellés du Studio sont **en fran
 - `shopmRef` (Avancé)
 - Aperçu dans le Studio : `code — name` + image + couleur selon la disponibilité
 
+### `realisation` (ajouté le 2026-11-26)
+- `title`, `place`, `date` (tri : plus récentes d'abord), `isVisible`
+- `media[]` : `beforeAfter` (`before`, `after`), `image` ou `realisationVideo` (`mp4`, `poster`), légende facultative ; le 1er = couverture
+- `patterns[]` → refs `pattern` (« Motifs utilisés », liens vers les motifs)
+- Affichées sur l'accueil (« Nos dernières réalisations », 12 max, nombre pair, 4 puis « Voir plus ») avec comparateur avant / après glissable
+
 ### Structure du Studio (Structure Builder)
 ```
 Revêt & Déco

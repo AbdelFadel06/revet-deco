@@ -10,11 +10,11 @@ import type { ContentTag } from '@/sanity/lib/fetch'
  *   URL         : https://<site>/api/revalidate
  *   Méthode     : POST
  *   Événements  : create, update, delete
- *   Filtre      : _type in ["siteSettings","category","product","patternFamily","pattern"]
+ *   Filtre      : _type in ["siteSettings","category","product","patternFamily","pattern","realisation"]
  *   Projection  : {_type, "slug": slug.current}
  *   Secret      : valeur de SANITY_REVALIDATE_SECRET
  */
-const TAGS = new Set<ContentTag>(['siteSettings', 'category', 'product', 'patternFamily', 'pattern'])
+const TAGS = new Set<ContentTag>(['siteSettings', 'category', 'product', 'patternFamily', 'pattern', 'realisation'])
 
 // Chaque appel à `sanityFetch` déclare TOUS les types qu'il lit (voir
 // sanity/lib/data.ts) : il suffit donc d'invalider le type modifié.

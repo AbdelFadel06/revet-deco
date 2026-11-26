@@ -5,6 +5,7 @@ import { ChevronRightIcon } from '@/components/ui/icons'
 import { SanityImage } from '@/components/ui/SanityImage'
 import { HeroCarousel } from '@/components/home/HeroCarousel'
 import { WhyUs } from '@/components/home/WhyUs'
+import { Realisations } from '@/components/home/Realisations'
 import { ExpandableGrid } from '@/components/ui/ExpandableGrid'
 import { evenSlice } from '@/lib/display'
 import { getHome } from '@/sanity/lib/data'
@@ -35,7 +36,7 @@ function HeroText({ ctaHref }: { ctaHref: string | null }) {
 }
 
 export default async function HomePage() {
-  const { whyUsImage, heroSlides, categories, featuredProducts, featuredPatterns } = await getHome()
+  const { whyUsImage, heroSlides, categories, featuredProducts, featuredPatterns, realisations } = await getHome()
   const firstCategory = categories.find((c) => !c.isSeasonal) ?? categories[0]
   // Nombre pair : rangées complètes sur mobile (2 colonnes).
   const slides: HOME_QUERY_RESULT['heroSlides'][number][] = heroSlides
@@ -114,6 +115,9 @@ export default async function HomePage() {
             </ExpandableGrid>
           </section>
         )}
+
+        {/* Nos dernières réalisations : nombre pair, 4 d'abord puis « Voir plus » */}
+        {realisations.length > 0 && <Realisations items={evenSlice(realisations)} />}
 
         {/* Pourquoi nous choisir */}
         <WhyUs image={whyUsImage ?? firstImageSlide} />

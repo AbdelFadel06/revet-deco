@@ -118,6 +118,29 @@ export const HOME_QUERY = defineQuery(`{
       "productSlug": product->slug.current,
       "categorySlug": product->category->slug.current,
       "familySlug": family->slug.current
+    },
+  "realisations": *[_type == "realisation" && isVisible != false && count(media) > 0]
+    | order(date desc, _createdAt desc)[0...12]{
+      _id,
+      title,
+      place,
+      date,
+      "media": coalesce(media[]{
+        _key,
+        _type,
+        caption,
+        _type == "image" => { ${IMAGE} },
+        _type == "beforeAfter" => { "before": before{${IMAGE}}, "after": after{${IMAGE}} },
+        _type == "realisationVideo" => { "mp4": mp4.asset->url, "poster": poster{${IMAGE}} }
+      }, []),
+      "patterns": coalesce(patterns[]->{
+        _id,
+        code,
+        name,
+        "image": coalesce(photos[0], image){${IMAGE}},
+        "productSlug": product->slug.current,
+        "categorySlug": product->category->slug.current
+      }, [])
     }
 }`)
 

@@ -29,7 +29,7 @@ export const getSettings = () => sanityFetch({ query: SETTINGS_QUERY, tags: ['si
 export const getNavCategories = () => sanityFetch({ query: NAV_CATEGORIES_QUERY, tags: ['category', 'product'] })
 
 export const getHome = () =>
-  sanityFetch({ query: HOME_QUERY, tags: ['siteSettings', 'category', 'product', 'pattern', 'patternFamily'] })
+  sanityFetch({ query: HOME_QUERY, tags: ['siteSettings', 'category', 'product', 'pattern', 'patternFamily', 'realisation'] })
 
 export const getCategory = (category: string) =>
   sanityFetch({ query: CATEGORY_QUERY, params: { category }, tags: ['category', 'product', 'patternFamily', 'pattern'] })
