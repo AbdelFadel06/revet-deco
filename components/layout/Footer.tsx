@@ -1,5 +1,6 @@
 import { MapPinIcon, PhoneIcon, TikTokIcon, WhatsAppIcon } from '@/components/ui/icons'
 import { formatBeninPhone } from '@/lib/format'
+import { mapHref } from '@/lib/routes'
 import { buildWhatsAppUrl, WHATSAPP_NUMBER_REGEX } from '@/lib/whatsapp'
 import type { SETTINGS_QUERY_RESULT } from '@/sanity/types'
 
@@ -19,7 +20,8 @@ export function Footer({ settings }: { settings: SETTINGS_QUERY_RESULT }) {
   const number = settings?.whatsappNumber && WHATSAPP_NUMBER_REGEX.test(settings.whatsappNumber) ? settings.whatsappNumber : null
   const tiktok = settings?.socials?.tiktok ?? null
   const address = settings?.address ?? null
-  const mapUrl = settings?.mapUrl ?? null
+  // Lien Maps saisi s'il est valide, sinon recherche Maps sur le nom + l'adresse.
+  const mapUrl = mapHref(settings?.mapUrl ?? null, shopName, settings?.address ?? null)
 
   const linkClass = 'inline-flex min-h-11 items-center gap-2.5 transition hover:text-gold-400'
 

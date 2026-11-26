@@ -1,5 +1,6 @@
 import { CogIcon } from '@sanity/icons/Cog'
 import { defineArrayMember, defineField, defineType } from 'sanity'
+import { isGoogleMapsUrl } from '../../lib/routes'
 
 export const siteSettings = defineType({
   name: 'siteSettings',
@@ -99,7 +100,17 @@ export const siteSettings = defineType({
     }),
     defineField({ name: 'address', title: 'Adresse', type: 'text', rows: 2, group: 'contact' }),
     defineField({ name: 'openingHours', title: 'Horaires', type: 'text', rows: 3, group: 'contact' }),
-    defineField({ name: 'mapUrl', title: 'Lien Google Maps', type: 'url', group: 'contact' }),
+    defineField({
+      name: 'mapUrl',
+      title: 'Lien Google Maps',
+      type: 'url',
+      group: 'contact',
+      description: 'Dans l’app Google Maps : ouvrez la boutique → Partager → Copier le lien (commence par https://maps.app.goo.gl/).',
+      validation: (r) =>
+        r.custom((url: string | undefined) =>
+          !url || isGoogleMapsUrl(url) ? true : 'Ce lien n’ouvre pas Google Maps (lien de recherche Google ?). Copiez le lien depuis l’app Google Maps.',
+        ).warning(),
+    }),
     defineField({
       name: 'socials',
       title: 'Réseaux sociaux',

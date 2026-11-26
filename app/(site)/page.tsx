@@ -82,7 +82,7 @@ export default async function HomePage() {
             </h2>
             <ExpandableGrid className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4" label="Voir plus de motifs">
               {patterns.map((p) => (
-                <Link key={p._id} href={`/${p.categorySlug}/${p.productSlug}#${p.code}`} className="group block">
+                <Link key={p._id} href={`/${p.categorySlug}/${p.productSlug}/${encodeURIComponent(p.code ?? "")}`} className="group block">
                   <div className="relative overflow-hidden border border-gold-200">
                     <SanityImage
                       image={p.image}

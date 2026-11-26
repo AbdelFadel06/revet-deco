@@ -1,5 +1,5 @@
 import { ImageIcon } from '@sanity/icons/Image'
-import { defineField, defineType, type ValidationContext } from 'sanity'
+import { defineArrayMember, defineField, defineType, type ValidationContext } from 'sanity'
 import { apiVersion } from '../env'
 import { advancedGroup, availabilityField, availabilityLabels, shopmRefField } from './shared'
 
@@ -63,8 +63,35 @@ export const pattern = defineType({
       },
       validation: (r) => r.required(),
     }),
-    defineField({ name: 'image', title: 'Photo à plat', type: 'image', group: 'contenu', validation: (r) => r.required() }),
-    defineField({ name: 'roomImage', title: 'Photo posée (optionnelle)', type: 'image', group: 'contenu', options: { hotspot: true } }),
+    defineField({
+      name: 'photos',
+      title: 'Photos',
+      type: 'array',
+      group: 'contenu',
+      description:
+        'Glissez une ou plusieurs photos. La 1re est la photo principale (grilles, panier). Changez l’ordre avec la poignée ⋮⋮.',
+      of: [
+        defineArrayMember({
+          type: 'image',
+          options: { hotspot: true },
+          fields: [
+            defineField({ name: 'caption', title: 'Légende (facultatif)', type: 'string' }),
+            defineField({
+              name: 'isRender',
+              title: 'Image de simulation',
+              type: 'boolean',
+              description: 'Cochée automatiquement pour les rendus générés. Affiche « Simulation indicative » sur le site.',
+              initialValue: false,
+            }),
+          ],
+        }),
+      ],
+      options: { layout: 'grid' },
+      validation: (r) => r.required().min(1).error('Ajoutez au moins une photo du motif.'),
+    }),
+    // Anciens champs (avant « Photos ») : masqués, conservés le temps de la migration.
+    defineField({ name: 'image', title: 'Ancienne photo à plat', type: 'image', group: 'avance', hidden: true }),
+    defineField({ name: 'roomImage', title: 'Ancienne photo posée', type: 'image', group: 'avance', hidden: true }),
     { ...availabilityField(), group: 'contenu' },
     defineField({
       name: 'priceOverride',
@@ -79,7 +106,7 @@ export const pattern = defineType({
   ],
   orderings: [{ title: 'Code', name: 'code', by: [{ field: 'code', direction: 'asc' }] }],
   preview: {
-    select: { code: 'code', name: 'name', media: 'image', availability: 'availability' },
+    select: { code: 'code', name: 'name', media: 'photos.0', availability: 'availability' },
     prepare: ({ code, name, media, availability }) => ({
       title: `${code ?? '—'} — ${name ?? ''}`,
       subtitle: `${AVAILABILITY_EMOJI[availability] ?? ''} ${availabilityLabels[availability] ?? ''}`,

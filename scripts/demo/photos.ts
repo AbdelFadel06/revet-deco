@@ -198,7 +198,9 @@ async function main() {
     const assetId = await upload(photo, 1000)
     const ids = await client.fetch<string[]>(`*[_type == "pattern" && code == $code]._id`, { code })
     for (const id of ids) {
-      tx.patch(id, (p) => p.set({ name: photo.name, image: { _type: 'image', asset: { _type: 'reference', _ref: assetId } } }))
+      // Remplace seulement la 1re photo (principale) ; les photos suivantes ajoutées dans le Studio sont gardées.
+      const main = { _key: 'p0', _type: 'image', asset: { _type: 'reference', _ref: assetId } }
+      tx.patch(id, (p) => p.set({ name: photo.name }).setIfMissing({ photos: [] }).unset(['photos[_key=="p0"]']).prepend('photos', [main]))
     }
   }
   await tx.commit()

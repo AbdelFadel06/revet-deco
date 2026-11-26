@@ -46,8 +46,9 @@ const PATTERN_CARD = /* groq */ `
   "availability": coalesce(availability, "disponible"),
   priceOverride,
   "productId": product._ref,
-  "image": image{${IMAGE}},
-  "roomImage": roomImage{${IMAGE}}
+  // Photo principale = 1re du champ « Photos » (ancien champ « image » en secours).
+  "image": coalesce(photos[0], image){${IMAGE}},
+  "photos": coalesce(photos[]{ _key, ${IMAGE}, caption, "isRender": coalesce(isRender, false) }, [])
 `
 
 /** Catégorie visible = isVisible absent ou vrai. */
@@ -161,7 +162,7 @@ export const PRODUCT_QUERY = defineQuery(`
       "slug": slug.current,
       "coverImage": coalesce(
         coverImage,
-        *[_type == "pattern" && family._ref == ^._id] | order(code asc)[0].image
+        coalesce(*[_type == "pattern" && family._ref == ^._id] | order(code asc)[0].photos[0], *[_type == "pattern" && family._ref == ^._id] | order(code asc)[0].image)
       ){${IMAGE}},
       "patternCount": count(*[_type == "pattern" && family._ref == ^._id])
     },
@@ -244,3 +245,34 @@ export const CART_CATALOG_QUERY = defineQuery(`{
     "familySlug": family->slug.current
   }
 }`)
+
+// --- Page d'un motif ---------------------------------------------------------
+
+/** Motif seul (accès direct / partage) : produit, caractéristiques, motifs similaires. */
+export const PATTERN_PAGE_QUERY = defineQuery(`
+  *[_type == "pattern" && code == $code
+    && product->slug.current == $product
+    && product->category->slug.current == $category
+    && product->category->isVisible != false][0]{
+    ${PATTERN_CARD},
+    "familySlug": family->slug.current,
+    "familyTitle": family->title,
+    "product": product->{
+      ${PRODUCT_PRICING},
+      "slug": slug.current,
+      dimensions,
+      "features": coalesce(features, []),
+      "category": category->{title, "slug": slug.current}
+    },
+    "similar": *[_type == "pattern" && family._ref == ^.family._ref && _id != ^._id && availability != "epuise"]
+      | order(code asc)[0...8]{ ${PATTERN_CARD} }
+  }
+`)
+
+export const PATTERN_PATHS_QUERY = defineQuery(`
+  *[_type == "pattern" && defined(code) && product->category->isVisible != false]{
+    "category": product->category->slug.current,
+    "product": product->slug.current,
+    code
+  }
+`)

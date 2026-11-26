@@ -1,16 +1,16 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { useCart } from '@/components/cart/cartStore'
-import { CheckIcon, CloseIcon } from '@/components/ui/icons'
-import { QtyStepper } from '@/components/ui/QtyStepper'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { CloseIcon } from '@/components/ui/icons'
 import { SanityImage, type SanityImageData } from '@/components/ui/SanityImage'
-import { useToast } from '@/components/ui/Toaster'
 import { useUrlState } from '@/components/ui/useUrlState'
-import { formatPrice, normalizeCode, unitLabel } from '@/lib/format'
-import { getNextTier, getTierPrice } from '@/lib/pricing'
-import type { Availability, PriceTier, Unit } from '@/lib/types'
-import { AvailabilityBadge, FeatureChips } from './badges'
+import { formatPrice } from '@/lib/format'
+import { getTierPrice } from '@/lib/pricing'
+import type { Availability } from '@/lib/types'
+import { AvailabilityBadge } from './badges'
+import { PatternGallery, type GalleryPhoto } from './pattern/PatternGallery'
+import { PatternPurchase, type PurchaseProduct } from './pattern/PatternPurchase'
+import { patternHref, usePatternRoute } from './pattern/usePatternRoute'
 
 export interface BrowserPattern {
   _id: string
@@ -20,10 +20,11 @@ export interface BrowserPattern {
   priceOverride: number | null
   familySlug: string | null
   image: SanityImageData | null
+  photos: GalleryPhoto[]
 }
 
 interface Props {
-  product: { id: string; title: string; unit: Unit; priceTiers: PriceTier[]; features: string[] }
+  product: PurchaseProduct & { slug: string; categorySlug: string }
   families: { slug: string; title: string; count: number }[]
   patterns: BrowserPattern[]
 }
@@ -37,19 +38,24 @@ const ALL = 'tous'
  * sans être lu côté serveur (la page reste statique).
  */
 export function PatternBrowser({ product, families, patterns }: Props) {
-  // Famille filtrée et motif ouvert vivent dans l'URL : ?famille=marbre#PP-M01
-  // → liens partageables, et le bouton « retour » ferme la fenêtre.
-  const { search, hash, update } = useUrlState()
+  // Famille filtrée dans l'URL (?famille=marbre) ; motif ouvert = adresse de sa page.
+  const { search, update } = useUrlState()
   const requested = search.get('famille')
   const family = requested && families.some((f) => f.slug === requested) ? requested : ALL
-  const selected = hash ? (patterns.find((p) => p.code === normalizeCode(hash)) ?? null) : null
+
+  const hrefOf = useCallback(
+    (code: string) => patternHref(product.categorySlug, product.slug, code),
+    [product.categorySlug, product.slug],
+  )
+  const codes = useMemo(() => patterns.map((p) => p.code), [patterns])
+  const { selectedCode, open, close } = usePatternRoute(codes, hrefOf, `/${product.categorySlug}/${product.slug}`)
+  const selected = selectedCode ? (patterns.find((p) => p.code === selectedCode) ?? null) : null
 
   // Pagination : remise à zéro quand on change de famille.
   const [paging, setPaging] = useState({ family: ALL, visible: PAGE_SIZE })
   const visible = paging.family === family ? paging.visible : PAGE_SIZE
   const setVisible = (fn: (v: number) => number) => setPaging({ family, visible: fn(visible) })
 
-  const setSelected = (p: BrowserPattern | null) => update({ hash: p?.code ?? null })
   const chooseFamily = (slug: string) => update({ params: { famille: slug === ALL ? null : slug } })
 
   const filtered = useMemo(
@@ -101,9 +107,12 @@ export function PatternBrowser({ product, families, patterns }: Props) {
           const out = p.availability === 'epuise'
           return (
             <li key={p._id} id={p.code}>
-              <button
-                type="button"
-                onClick={() => setSelected(p)}
+              <a
+                href={hrefOf(p.code)}
+                onClick={(e) => {
+                  e.preventDefault()
+                  open(p.code)
+                }}
                 className="group flex w-full flex-col overflow-hidden border border-gold-200 bg-white text-left transition hover:border-gold-400 focus-visible:outline-2 focus-visible:outline-brown-900"
               >
                 <div className="relative">
@@ -121,7 +130,7 @@ export function PatternBrowser({ product, families, patterns }: Props) {
                   <p className="truncate text-sm text-brown-700">{p.name}</p>
                   <p className="mt-1 text-sm font-semibold text-ink-900">{formatPrice(p.priceOverride ?? basePrice)}</p>
                 </div>
-              </button>
+              </a>
             </li>
           )
         })}
@@ -141,7 +150,7 @@ export function PatternBrowser({ product, families, patterns }: Props) {
 
       {/* Monté seulement quand un motif est choisi : quantité remise à 1 à chaque ouverture. */}
       {selected && (
-        <PatternSheet key={selected.code} product={product} pattern={selected} onClose={() => setSelected(null)} />
+        <PatternSheet key={selected.code} product={product} pattern={selected} href={hrefOf(selected.code)} onClose={close} />
       )}
     </section>
   )
@@ -149,21 +158,22 @@ export function PatternBrowser({ product, families, patterns }: Props) {
 
 // ---------------------------------------------------------------------------
 
+/**
+ * Fenêtre du motif par-dessus la grille (carte posée en bas sur mobile).
+ * Contenu partagé avec la page dédiée : galerie + bloc d'achat.
+ */
 export function PatternSheet({
   product,
   pattern,
+  href,
   onClose,
 }: {
-  product: Props['product']
+  product: PurchaseProduct
   pattern: BrowserPattern
+  href: string
   onClose: () => void
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null)
-  const [qty, setQty] = useState(1)
-  const [added, setAdded] = useState(false)
-  const add = useCart((s) => s.add)
-  const items = useCart((s) => s.items)
-  const showToast = useToast((s) => s.show)
 
   // Ouverture en modale (piège le focus, Échap ferme) dès le montage.
   useEffect(() => {
@@ -171,24 +181,12 @@ export function PatternSheet({
     if (d && !d.open) d.showModal()
   }, [])
 
-  // Quantité totale du produit déjà au panier (le palier se calcule dessus).
-  const inCartForProduct = items.filter((i) => i.productId === product.id).reduce((s, i) => s + i.qty, 0)
-  const inCartForPattern = items.find((i) => i.productId === product.id && i.patternCode === pattern.code)?.qty ?? 0
-
-  const out = pattern.availability === 'epuise'
-  const override = pattern.priceOverride
-  const totalAfter = inCartForProduct + qty
-  const unitPrice = override ?? getTierPrice(product.priceTiers, totalAfter)
-  const next = override != null ? null : getNextTier(product.priceTiers, totalAfter)
-  const hasOverride = override != null
-
-  const handleAdd = () => {
-    if (out) return
-    add({ productId: product.id, patternCode: pattern.code, qty })
-    showToast({ title: 'Ajouté au panier', detail: `${pattern.code} · ${pattern.name} × ${qty}` })
-    setAdded(true)
-    setTimeout(onClose, 900)
-  }
+  const photos: GalleryPhoto[] =
+    pattern.photos.length > 0
+      ? pattern.photos
+      : pattern.image
+        ? [{ ...pattern.image, _key: 'principale', caption: null, isRender: false }]
+        : []
 
   return (
     <dialog
@@ -199,87 +197,27 @@ export function PatternSheet({
       // Mobile : carte posée en bas avec 12 px de marge sur les côtés et en bas.
       className="mx-auto mb-[max(0.75rem,env(safe-area-inset-bottom))] mt-auto max-h-[88dvh] w-[calc(100%-1.5rem)] max-w-none overflow-y-auto bg-cream-50 p-0 shadow-2xl backdrop:bg-ink-900/60 sm:m-auto sm:w-full sm:max-w-3xl"
     >
-      {pattern && (
-        <div className="grid sm:grid-cols-2">
-          <div className="relative">
-            <SanityImage
-              image={pattern.image}
-              alt={`Motif ${pattern.code} – ${pattern.name}`}
-              aspect={1}
-              sizes="(min-width: 640px) 384px, 100vw"
-              className={`aspect-square w-full object-cover ${out ? 'opacity-50 grayscale' : ''}`}
-            />
-            <button
-              type="button"
-              onClick={onClose}
-              className="absolute right-3 top-3 flex size-11 items-center justify-center bg-cream-50/90 text-brown-900"
-              aria-label="Fermer"
-            >
-              <CloseIcon />
-            </button>
-          </div>
-
-          <div className="flex flex-col gap-4 p-5">
-            <div>
-              <p className="text-sm text-brown-700">{product.title}</p>
-              <h2 id="sheet-title" className="pattern-code mt-1 text-3xl text-brown-900">
-                {pattern.code}
-              </h2>
-              <p className="text-lg text-ink-900">{pattern.name}</p>
-              <AvailabilityBadge availability={pattern.availability} className="mt-2" />
-            </div>
-
-            <FeatureChips features={product.features} />
-
-            <div>
-              <p className="text-2xl font-semibold text-ink-900">
-                {formatPrice(unitPrice)}{' '}
-                <span className="text-base font-normal text-brown-700">/ {unitLabel(product.unit, 1)}</span>
-              </p>
-              {next && (
-                <p className="mt-1 text-sm font-medium text-status-ok">
-                  Plus que {next.qtyNeeded} {unitLabel(product.unit, next.qtyNeeded)} pour passer à{' '}
-                  {formatPrice(next.unitPrice)} l’unité
-                </p>
-              )}
-              {inCartForProduct > 0 && !hasOverride && (
-                <p className="mt-1 text-xs text-brown-700">
-                  Prix calculé avec les {inCartForProduct} {unitLabel(product.unit, inCartForProduct)} déjà au panier
-                  (tous motifs confondus).
-                </p>
-              )}
-            </div>
-
-            {out ? (
-              <p className="bg-status-out/15 p-3 text-sm text-ink-900">
-                Ce motif est épuisé pour le moment. Demandez-nous sur WhatsApp quand il revient.
-              </p>
-            ) : (
-              <div className="flex flex-wrap items-center gap-3">
-                <QtyStepper value={qty} onChange={setQty} />
-                <button
-                  type="button"
-                  onClick={handleAdd}
-                  disabled={added}
-                  className="flex min-h-11 flex-1 items-center justify-center gap-2 bg-brown-900 px-5 font-semibold text-gold-200 transition hover:bg-brown-700 disabled:bg-status-ok disabled:text-white"
-                >
-                  {added ? (
-                    <>
-                      <CheckIcon className="size-5" /> Ajouté au panier
-                    </>
-                  ) : (
-                    `Ajouter · ${formatPrice(unitPrice * qty)}`
-                  )}
-                </button>
-              </div>
-            )}
-
-            {inCartForPattern > 0 && !added && (
-              <p className="text-sm text-brown-700">Déjà {inCartForPattern} dans votre panier.</p>
-            )}
-          </div>
+      <div className="grid sm:grid-cols-2">
+        <div className="relative">
+          <PatternGallery
+            photos={photos}
+            alt={`Motif ${pattern.code} – ${pattern.name}`}
+            dimmed={pattern.availability === 'epuise'}
+            sizes="(min-width: 640px) 384px, 100vw"
+          />
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute right-3 top-3 flex size-11 items-center justify-center bg-cream-50/90 text-brown-900"
+            aria-label="Fermer"
+          >
+            <CloseIcon />
+          </button>
         </div>
-      )}
+        <div className="p-5">
+          <PatternPurchase product={product} pattern={pattern} shareUrl={href} headingId="sheet-title" onAdded={onClose} />
+        </div>
+      </div>
     </dialog>
   )
 }

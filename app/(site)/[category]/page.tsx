@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
+import { BrandLoader } from '@/components/ui/BrandLoader'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { toPricing } from '@/components/catalog/cards'
@@ -27,7 +29,7 @@ export async function generateMetadata({ params }: PageProps<'/[category]'>): Pr
 const asAvailability = (a: string | null): Availability =>
   (AVAILABILITIES as readonly string[]).includes(a ?? '') ? (a as Availability) : 'disponible'
 
-export default async function CategoryPage({ params }: PageProps<'/[category]'>) {
+async function CategoryContent({ params }: { params: PageProps<'/[category]'>['params'] }) {
   const { category } = await params
   const data = await getCategory(category)
   if (!data) notFound()
@@ -59,6 +61,7 @@ export default async function CategoryPage({ params }: PageProps<'/[category]'>)
             familySlug: pat.familySlug,
             familyTitle: pat.familyTitle,
             image: pat.image,
+            photos: pat.photos,
           })),
       }
     })
@@ -80,9 +83,22 @@ export default async function CategoryPage({ params }: PageProps<'/[category]'>)
         {products.length === 0 ? (
           <p className="py-12 text-center text-brown-700">Aucun produit dans cette catégorie pour le moment.</p>
         ) : (
-          <CategoryBrowser products={products} />
+          <CategoryBrowser products={products} categoryPath={`/${data.slug}`} />
         )}
       </div>
     </div>
+  )
+}
+
+/**
+ * La lecture de l'adresse (params) est placée sous <Suspense> : la navigation
+ * affiche tout de suite la structure de la page (loader de la boutique), puis
+ * le contenu arrive en flux (navigation instantanée, Cache Components).
+ */
+export default function CategoryPage(props: PageProps<'/[category]'>) {
+  return (
+    <Suspense fallback={<BrandLoader />}>
+      <CategoryContent params={props.params} />
+    </Suspense>
   )
 }

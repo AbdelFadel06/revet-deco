@@ -1,0 +1,24 @@
+{
+	// Configuration Cloudflare Workers (adaptateur OpenNext pour Next.js).
+	// Le nom doit être IDENTIQUE au nom du Worker dans le tableau de bord Cloudflare.
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "revet-deco",
+	"main": ".open-next/worker.js",
+	"compatibility_date": "2026-11-01",
+	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+	"assets": {
+		"directory": ".open-next/assets",
+		"binding": "ASSETS"
+	},
+	"services": [
+		{
+			// Auto-référence exigée par OpenNext (même nom que le Worker).
+			"binding": "WORKER_SELF_REFERENCE",
+			"service": "revet-deco"
+		}
+	],
+	"observability": { "enabled": true }
+	// Plus tard (cache persistant, recommandé) : créer le bucket R2 « revet-deco-cache » puis ajouter :
+	// "r2_buckets": [{ "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "revet-deco-cache" }]
+	// et activer r2IncrementalCache dans open-next.config.ts.
+}

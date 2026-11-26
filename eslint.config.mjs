@@ -14,6 +14,9 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Fichiers générés par Sanity TypeGen
     "sanity/types.ts",
+    // Sortie de l'adaptateur Cloudflare
+    ".open-next/**",
+    ".wrangler/**",
   ]),
 ]);
 

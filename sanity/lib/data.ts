@@ -10,6 +10,8 @@ import {
   FAMILY_QUERY,
   HOME_QUERY,
   NAV_CATEGORIES_QUERY,
+  PATTERN_PAGE_QUERY,
+  PATTERN_PATHS_QUERY,
   PRODUCT_PATHS_QUERY,
   PRODUCT_QUERY,
   SEARCH_QUERY,
@@ -43,6 +45,13 @@ export const getFamily = (category: string, product: string, family: string) =>
   sanityFetch({
     query: FAMILY_QUERY,
     params: { category, product, family },
+    tags: ['category', 'product', 'patternFamily', 'pattern'],
+  })
+
+export const getPattern = (category: string, product: string, code: string) =>
+  sanityFetch({
+    query: PATTERN_PAGE_QUERY,
+    params: { category, product, code: normalizeCode(code) },
     tags: ['category', 'product', 'patternFamily', 'pattern'],
   })
 
@@ -83,4 +92,9 @@ export async function getProductParams() {
 export async function getFamilyParams() {
   const rows = await sanityFetch({ query: FAMILY_PATHS_QUERY, tags: ['category', 'product', 'patternFamily'] })
   return rows.filter(hasAll(['category', 'product', 'family']))
+}
+
+export async function getPatternParams() {
+  const rows = await sanityFetch({ query: PATTERN_PATHS_QUERY, tags: ['category', 'product', 'pattern'] })
+  return rows.filter(hasAll(['category', 'product', 'code']))
 }

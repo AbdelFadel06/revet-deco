@@ -65,7 +65,7 @@ export async function getCartView(input: unknown): Promise<{ totals: CartTotals;
     const base = pat.productId ? productHref[pat.productId] : null
     display.patterns[normalizeCode(pat.code)] = {
       image: pat.image,
-      href: base ? `${base}#${encodeURIComponent(pat.code)}` : null,
+      href: base ? `${base}/${encodeURIComponent(pat.code)}` : null,
     }
   }
   return { totals: getCartTotals(items, toCatalog(data)), display }

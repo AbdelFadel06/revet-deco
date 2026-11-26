@@ -46,6 +46,16 @@ export type Pattern = {
   name?: string;
   product?: ProductReference;
   family?: PatternFamilyReference;
+  photos?: Array<{
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    caption?: string;
+    isRender?: boolean;
+    _type: "image";
+    _key: string;
+  }>;
   image?: {
     asset?: SanityImageAssetReference;
     media?: unknown;
@@ -460,7 +470,7 @@ export type NAV_CATEGORIES_QUERY_RESULT = Array<{
 
 // Source: sanity/lib/queries.ts
 // Variable: HOME_QUERY
-// Query: {  "whyUsImage": *[_type == "siteSettings"][0].whyUsImage{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height, alt},  "heroSlides": coalesce(*[_type == "siteSettings"][0].heroSlides[]{    _key,    _type,    caption,    alt,    _type == "image" => {   asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height },    _type == "heroVideo" => {      "mp4": mp4.asset->url,      "av1": av1.asset->url,      "poster": poster{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height}    }  }, []),  "categories": *[_type == "category" && isVisible != false && defined(slug.current)] | order(order asc, title asc){    _id,    title,    "slug": slug.current,    description,    "isSeasonal": coalesce(isSeasonal, false),    "image": image{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},    "productCount": count(*[_type == "product" && category._ref == ^._id])  },  "featuredProducts": *[_type == "product" && isFeatured == true && category->isVisible != false]    | order(order asc, title asc)[0...16]{    _id,  title,  unit,  "priceTiers": coalesce(priceTiers[]{minQty, unitPrice}, []),  priceRange,  "hasPatterns": coalesce(hasPatterns, false),  "availability": coalesce(availability, "disponible"),  "slug": slug.current,  "categorySlug": category->slug.current,  shortDescription,  dimensions,  "features": coalesce(features, []),  "mainImage": mainImage{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},  "patternCount": count(*[_type == "pattern" && product._ref == ^._id])},  "featuredPatterns": *[_type == "pattern" && isFeatured == true && availability != "epuise"]    | order(code asc)[0...24]{        _id,  code,  name,  "availability": coalesce(availability, "disponible"),  priceOverride,  "productId": product._ref,  "image": image{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},  "roomImage": roomImage{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},      "productSlug": product->slug.current,      "categorySlug": product->category->slug.current,      "familySlug": family->slug.current    }}
+// Query: {  "whyUsImage": *[_type == "siteSettings"][0].whyUsImage{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height, alt},  "heroSlides": coalesce(*[_type == "siteSettings"][0].heroSlides[]{    _key,    _type,    caption,    alt,    _type == "image" => {   asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height },    _type == "heroVideo" => {      "mp4": mp4.asset->url,      "av1": av1.asset->url,      "poster": poster{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height}    }  }, []),  "categories": *[_type == "category" && isVisible != false && defined(slug.current)] | order(order asc, title asc){    _id,    title,    "slug": slug.current,    description,    "isSeasonal": coalesce(isSeasonal, false),    "image": image{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},    "productCount": count(*[_type == "product" && category._ref == ^._id])  },  "featuredProducts": *[_type == "product" && isFeatured == true && category->isVisible != false]    | order(order asc, title asc)[0...16]{    _id,  title,  unit,  "priceTiers": coalesce(priceTiers[]{minQty, unitPrice}, []),  priceRange,  "hasPatterns": coalesce(hasPatterns, false),  "availability": coalesce(availability, "disponible"),  "slug": slug.current,  "categorySlug": category->slug.current,  shortDescription,  dimensions,  "features": coalesce(features, []),  "mainImage": mainImage{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},  "patternCount": count(*[_type == "pattern" && product._ref == ^._id])},  "featuredPatterns": *[_type == "pattern" && isFeatured == true && availability != "epuise"]    | order(code asc)[0...24]{        _id,  code,  name,  "availability": coalesce(availability, "disponible"),  priceOverride,  "productId": product._ref,  // Photo principale = 1re du champ « Photos » (ancien champ « image » en secours).  "image": coalesce(photos[0], image){  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},  "photos": coalesce(photos[]{ _key,   asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height, caption, "isRender": coalesce(isRender, false) }, []),      "productSlug": product->slug.current,      "categorySlug": product->category->slug.current,      "familySlug": family->slug.current    }}
 export type HOME_QUERY_RESULT = {
   whyUsImage: {
     asset: SanityImageAssetReference | null;
@@ -573,14 +583,19 @@ export type HOME_QUERY_RESULT = {
       width: number | null;
       height: number | null;
     } | null;
-    roomImage: {
-      asset: SanityImageAssetReference | null;
-      crop: SanityImageCrop | null;
-      hotspot: SanityImageHotspot | null;
-      lqip: string | null;
-      width: number | null;
-      height: number | null;
-    } | null;
+    photos:
+      | Array<{
+          _key: string;
+          asset: SanityImageAssetReference | null;
+          crop: SanityImageCrop | null;
+          hotspot: SanityImageHotspot | null;
+          lqip: string | null;
+          width: number | null;
+          height: number | null;
+          caption: string | null;
+          isRender: boolean | false;
+        }>
+      | Array<never>;
     productSlug: string | null;
     categorySlug: string | null;
     familySlug: string | null;
@@ -589,7 +604,7 @@ export type HOME_QUERY_RESULT = {
 
 // Source: sanity/lib/queries.ts
 // Variable: CATEGORY_QUERY
-// Query: *[_type == "category" && isVisible != false && defined(slug.current) && slug.current == $category][0]{    _id,    title,    "slug": slug.current,    description,    "image": image{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},    "products": *[_type == "product" && category._ref == ^._id] | order(order asc, title asc){          _id,  title,  unit,  "priceTiers": coalesce(priceTiers[]{minQty, unitPrice}, []),  priceRange,  "hasPatterns": coalesce(hasPatterns, false),  "availability": coalesce(availability, "disponible"),  "slug": slug.current,  "categorySlug": category->slug.current,  shortDescription,  dimensions,  "features": coalesce(features, []),  "mainImage": mainImage{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},  "patternCount": count(*[_type == "pattern" && product._ref == ^._id]),      "patterns": *[_type == "pattern" && product._ref == ^._id] | order(family->order asc, code asc){          _id,  code,  name,  "availability": coalesce(availability, "disponible"),  priceOverride,  "productId": product._ref,  "image": image{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},  "roomImage": roomImage{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},        "familySlug": family->slug.current,        "familyTitle": family->title      }    }  }
+// Query: *[_type == "category" && isVisible != false && defined(slug.current) && slug.current == $category][0]{    _id,    title,    "slug": slug.current,    description,    "image": image{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},    "products": *[_type == "product" && category._ref == ^._id] | order(order asc, title asc){          _id,  title,  unit,  "priceTiers": coalesce(priceTiers[]{minQty, unitPrice}, []),  priceRange,  "hasPatterns": coalesce(hasPatterns, false),  "availability": coalesce(availability, "disponible"),  "slug": slug.current,  "categorySlug": category->slug.current,  shortDescription,  dimensions,  "features": coalesce(features, []),  "mainImage": mainImage{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},  "patternCount": count(*[_type == "pattern" && product._ref == ^._id]),      "patterns": *[_type == "pattern" && product._ref == ^._id] | order(family->order asc, code asc){          _id,  code,  name,  "availability": coalesce(availability, "disponible"),  priceOverride,  "productId": product._ref,  // Photo principale = 1re du champ « Photos » (ancien champ « image » en secours).  "image": coalesce(photos[0], image){  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},  "photos": coalesce(photos[]{ _key,   asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height, caption, "isRender": coalesce(isRender, false) }, []),        "familySlug": family->slug.current,        "familyTitle": family->title      }    }  }
 export type CATEGORY_QUERY_RESULT = {
   _id: string;
   title: string | null;
@@ -656,14 +671,19 @@ export type CATEGORY_QUERY_RESULT = {
         width: number | null;
         height: number | null;
       } | null;
-      roomImage: {
-        asset: SanityImageAssetReference | null;
-        crop: SanityImageCrop | null;
-        hotspot: SanityImageHotspot | null;
-        lqip: string | null;
-        width: number | null;
-        height: number | null;
-      } | null;
+      photos:
+        | Array<{
+            _key: string;
+            asset: SanityImageAssetReference | null;
+            crop: SanityImageCrop | null;
+            hotspot: SanityImageHotspot | null;
+            lqip: string | null;
+            width: number | null;
+            height: number | null;
+            caption: string | null;
+            isRender: boolean | false;
+          }>
+        | Array<never>;
       familySlug: string | null;
       familyTitle: string | null;
     }>;
@@ -679,7 +699,7 @@ export type CATEGORY_SLUGS_QUERY_RESULT = Array<{
 
 // Source: sanity/lib/queries.ts
 // Variable: PRODUCT_QUERY
-// Query: *[_type == "product" && slug.current == $product && category->slug.current == $category && category->isVisible != false][0]{        _id,  title,  unit,  "priceTiers": coalesce(priceTiers[]{minQty, unitPrice}, []),  priceRange,  "hasPatterns": coalesce(hasPatterns, false),  "availability": coalesce(availability, "disponible"),  "slug": slug.current,  "categorySlug": category->slug.current,  shortDescription,  dimensions,  "features": coalesce(features, []),  "mainImage": mainImage{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},  "patternCount": count(*[_type == "pattern" && product._ref == ^._id]),    "category": category->{title, "slug": slug.current},    description,    installTips,    coveragePerUnit,    wasteMargin,    "gallery": gallery[]{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height, caption},    "families": *[_type == "patternFamily" && product._ref == ^._id] | order(order asc, title asc){      _id,      title,      "slug": slug.current,      "coverImage": coalesce(        coverImage,        *[_type == "pattern" && family._ref == ^._id] | order(code asc)[0].image      ){  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},      "patternCount": count(*[_type == "pattern" && family._ref == ^._id])    },    "patterns": *[_type == "pattern" && product._ref == ^._id] | order(family->order asc, code asc){        _id,  code,  name,  "availability": coalesce(availability, "disponible"),  priceOverride,  "productId": product._ref,  "image": image{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},  "roomImage": roomImage{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},      "familySlug": family->slug.current    }  }
+// Query: *[_type == "product" && slug.current == $product && category->slug.current == $category && category->isVisible != false][0]{        _id,  title,  unit,  "priceTiers": coalesce(priceTiers[]{minQty, unitPrice}, []),  priceRange,  "hasPatterns": coalesce(hasPatterns, false),  "availability": coalesce(availability, "disponible"),  "slug": slug.current,  "categorySlug": category->slug.current,  shortDescription,  dimensions,  "features": coalesce(features, []),  "mainImage": mainImage{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},  "patternCount": count(*[_type == "pattern" && product._ref == ^._id]),    "category": category->{title, "slug": slug.current},    description,    installTips,    coveragePerUnit,    wasteMargin,    "gallery": gallery[]{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height, caption},    "families": *[_type == "patternFamily" && product._ref == ^._id] | order(order asc, title asc){      _id,      title,      "slug": slug.current,      "coverImage": coalesce(        coverImage,        coalesce(*[_type == "pattern" && family._ref == ^._id] | order(code asc)[0].photos[0], *[_type == "pattern" && family._ref == ^._id] | order(code asc)[0].image)      ){  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},      "patternCount": count(*[_type == "pattern" && family._ref == ^._id])    },    "patterns": *[_type == "pattern" && product._ref == ^._id] | order(family->order asc, code asc){        _id,  code,  name,  "availability": coalesce(availability, "disponible"),  priceOverride,  "productId": product._ref,  // Photo principale = 1re du champ « Photos » (ancien champ « image » en secours).  "image": coalesce(photos[0], image){  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},  "photos": coalesce(photos[]{ _key,   asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height, caption, "isRender": coalesce(isRender, false) }, []),      "familySlug": family->slug.current    }  }
 export type PRODUCT_QUERY_RESULT = {
   _id: string;
   title: string | null;
@@ -798,14 +818,19 @@ export type PRODUCT_QUERY_RESULT = {
       width: number | null;
       height: number | null;
     } | null;
-    roomImage: {
-      asset: SanityImageAssetReference | null;
-      crop: SanityImageCrop | null;
-      hotspot: SanityImageHotspot | null;
-      lqip: string | null;
-      width: number | null;
-      height: number | null;
-    } | null;
+    photos:
+      | Array<{
+          _key: string;
+          asset: SanityImageAssetReference | null;
+          crop: SanityImageCrop | null;
+          hotspot: SanityImageHotspot | null;
+          lqip: string | null;
+          width: number | null;
+          height: number | null;
+          caption: string | null;
+          isRender: boolean | false;
+        }>
+      | Array<never>;
     familySlug: string | null;
   }>;
 } | null;
@@ -820,7 +845,7 @@ export type PRODUCT_PATHS_QUERY_RESULT = Array<{
 
 // Source: sanity/lib/queries.ts
 // Variable: FAMILY_QUERY
-// Query: *[_type == "patternFamily" && slug.current == $family    && product->slug.current == $product    && product->category->slug.current == $category][0]{    _id,    title,    "slug": slug.current,    "product": product->{        _id,  title,  unit,  "priceTiers": coalesce(priceTiers[]{minQty, unitPrice}, []),  priceRange,  "hasPatterns": coalesce(hasPatterns, false),  "availability": coalesce(availability, "disponible"),      "slug": slug.current,      dimensions,      "features": coalesce(features, []),      coveragePerUnit,      "category": category->{title, "slug": slug.current}    },    "otherFamilies": *[_type == "patternFamily" && product._ref == ^.product._ref && _id != ^._id]      | order(order asc, title asc){ title, "slug": slug.current },    "patterns": *[_type == "pattern" && family._ref == ^._id] | order(code asc){  _id,  code,  name,  "availability": coalesce(availability, "disponible"),  priceOverride,  "productId": product._ref,  "image": image{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},  "roomImage": roomImage{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height}}  }
+// Query: *[_type == "patternFamily" && slug.current == $family    && product->slug.current == $product    && product->category->slug.current == $category][0]{    _id,    title,    "slug": slug.current,    "product": product->{        _id,  title,  unit,  "priceTiers": coalesce(priceTiers[]{minQty, unitPrice}, []),  priceRange,  "hasPatterns": coalesce(hasPatterns, false),  "availability": coalesce(availability, "disponible"),      "slug": slug.current,      dimensions,      "features": coalesce(features, []),      coveragePerUnit,      "category": category->{title, "slug": slug.current}    },    "otherFamilies": *[_type == "patternFamily" && product._ref == ^.product._ref && _id != ^._id]      | order(order asc, title asc){ title, "slug": slug.current },    "patterns": *[_type == "pattern" && family._ref == ^._id] | order(code asc){  _id,  code,  name,  "availability": coalesce(availability, "disponible"),  priceOverride,  "productId": product._ref,  // Photo principale = 1re du champ « Photos » (ancien champ « image » en secours).  "image": coalesce(photos[0], image){  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},  "photos": coalesce(photos[]{ _key,   asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height, caption, "isRender": coalesce(isRender, false) }, [])}  }
 export type FAMILY_QUERY_RESULT = {
   _id: string;
   title: string | null;
@@ -877,14 +902,19 @@ export type FAMILY_QUERY_RESULT = {
       width: number | null;
       height: number | null;
     } | null;
-    roomImage: {
-      asset: SanityImageAssetReference | null;
-      crop: SanityImageCrop | null;
-      hotspot: SanityImageHotspot | null;
-      lqip: string | null;
-      width: number | null;
-      height: number | null;
-    } | null;
+    photos:
+      | Array<{
+          _key: string;
+          asset: SanityImageAssetReference | null;
+          crop: SanityImageCrop | null;
+          hotspot: SanityImageHotspot | null;
+          lqip: string | null;
+          width: number | null;
+          height: number | null;
+          caption: string | null;
+          isRender: boolean | false;
+        }>
+      | Array<never>;
   }>;
 } | null;
 
@@ -899,7 +929,7 @@ export type FAMILY_PATHS_QUERY_RESULT = Array<{
 
 // Source: sanity/lib/queries.ts
 // Variable: SEARCH_QUERY
-// Query: {  "patterns": *[_type == "pattern" && (code == $code || code match $term || name match $term)]    | order(code asc)[0...48]{        _id,  code,  name,  "availability": coalesce(availability, "disponible"),  priceOverride,  "productId": product._ref,  "image": image{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},  "roomImage": roomImage{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},      "productTitle": product->title,      "productSlug": product->slug.current,      "categorySlug": product->category->slug.current,      "familySlug": family->slug.current    },  "products": *[_type == "product" && category->isVisible != false && (title match $term || shortDescription match $term)]    | order(order asc)[0...12]{    _id,  title,  unit,  "priceTiers": coalesce(priceTiers[]{minQty, unitPrice}, []),  priceRange,  "hasPatterns": coalesce(hasPatterns, false),  "availability": coalesce(availability, "disponible"),  "slug": slug.current,  "categorySlug": category->slug.current,  shortDescription,  dimensions,  "features": coalesce(features, []),  "mainImage": mainImage{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},  "patternCount": count(*[_type == "pattern" && product._ref == ^._id])}}
+// Query: {  "patterns": *[_type == "pattern" && (code == $code || code match $term || name match $term)]    | order(code asc)[0...48]{        _id,  code,  name,  "availability": coalesce(availability, "disponible"),  priceOverride,  "productId": product._ref,  // Photo principale = 1re du champ « Photos » (ancien champ « image » en secours).  "image": coalesce(photos[0], image){  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},  "photos": coalesce(photos[]{ _key,   asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height, caption, "isRender": coalesce(isRender, false) }, []),      "productTitle": product->title,      "productSlug": product->slug.current,      "categorySlug": product->category->slug.current,      "familySlug": family->slug.current    },  "products": *[_type == "product" && category->isVisible != false && (title match $term || shortDescription match $term)]    | order(order asc)[0...12]{    _id,  title,  unit,  "priceTiers": coalesce(priceTiers[]{minQty, unitPrice}, []),  priceRange,  "hasPatterns": coalesce(hasPatterns, false),  "availability": coalesce(availability, "disponible"),  "slug": slug.current,  "categorySlug": category->slug.current,  shortDescription,  dimensions,  "features": coalesce(features, []),  "mainImage": mainImage{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},  "patternCount": count(*[_type == "pattern" && product._ref == ^._id])}}
 export type SEARCH_QUERY_RESULT = {
   patterns: Array<{
     _id: string;
@@ -916,14 +946,19 @@ export type SEARCH_QUERY_RESULT = {
       width: number | null;
       height: number | null;
     } | null;
-    roomImage: {
-      asset: SanityImageAssetReference | null;
-      crop: SanityImageCrop | null;
-      hotspot: SanityImageHotspot | null;
-      lqip: string | null;
-      width: number | null;
-      height: number | null;
-    } | null;
+    photos:
+      | Array<{
+          _key: string;
+          asset: SanityImageAssetReference | null;
+          crop: SanityImageCrop | null;
+          hotspot: SanityImageHotspot | null;
+          lqip: string | null;
+          width: number | null;
+          height: number | null;
+          caption: string | null;
+          isRender: boolean | false;
+        }>
+      | Array<never>;
     productTitle: string | null;
     productSlug: string | null;
     categorySlug: string | null;
@@ -972,7 +1007,7 @@ export type SEARCH_QUERY_RESULT = {
 
 // Source: sanity/lib/queries.ts
 // Variable: CART_CATALOG_QUERY
-// Query: {  "products": *[_type == "product" && _id in $productIds]{      _id,  title,  unit,  "priceTiers": coalesce(priceTiers[]{minQty, unitPrice}, []),  priceRange,  "hasPatterns": coalesce(hasPatterns, false),  "availability": coalesce(availability, "disponible"),    "slug": slug.current,    "categorySlug": category->slug.current,    "mainImage": mainImage{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height}  },  "patterns": *[_type == "pattern" && code in $codes]{      _id,  code,  name,  "availability": coalesce(availability, "disponible"),  priceOverride,  "productId": product._ref,  "image": image{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},  "roomImage": roomImage{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},    "familySlug": family->slug.current  }}
+// Query: {  "products": *[_type == "product" && _id in $productIds]{      _id,  title,  unit,  "priceTiers": coalesce(priceTiers[]{minQty, unitPrice}, []),  priceRange,  "hasPatterns": coalesce(hasPatterns, false),  "availability": coalesce(availability, "disponible"),    "slug": slug.current,    "categorySlug": category->slug.current,    "mainImage": mainImage{  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height}  },  "patterns": *[_type == "pattern" && code in $codes]{      _id,  code,  name,  "availability": coalesce(availability, "disponible"),  priceOverride,  "productId": product._ref,  // Photo principale = 1re du champ « Photos » (ancien champ « image » en secours).  "image": coalesce(photos[0], image){  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},  "photos": coalesce(photos[]{ _key,   asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height, caption, "isRender": coalesce(isRender, false) }, []),    "familySlug": family->slug.current  }}
 export type CART_CATALOG_QUERY_RESULT = {
   products: Array<{
     _id: string;
@@ -1024,7 +1059,96 @@ export type CART_CATALOG_QUERY_RESULT = {
       width: number | null;
       height: number | null;
     } | null;
-    roomImage: {
+    photos:
+      | Array<{
+          _key: string;
+          asset: SanityImageAssetReference | null;
+          crop: SanityImageCrop | null;
+          hotspot: SanityImageHotspot | null;
+          lqip: string | null;
+          width: number | null;
+          height: number | null;
+          caption: string | null;
+          isRender: boolean | false;
+        }>
+      | Array<never>;
+    familySlug: string | null;
+  }>;
+};
+
+// Source: sanity/lib/queries.ts
+// Variable: PATTERN_PAGE_QUERY
+// Query: *[_type == "pattern" && code == $code    && product->slug.current == $product    && product->category->slug.current == $category    && product->category->isVisible != false][0]{      _id,  code,  name,  "availability": coalesce(availability, "disponible"),  priceOverride,  "productId": product._ref,  // Photo principale = 1re du champ « Photos » (ancien champ « image » en secours).  "image": coalesce(photos[0], image){  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},  "photos": coalesce(photos[]{ _key,   asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height, caption, "isRender": coalesce(isRender, false) }, []),    "familySlug": family->slug.current,    "familyTitle": family->title,    "product": product->{        _id,  title,  unit,  "priceTiers": coalesce(priceTiers[]{minQty, unitPrice}, []),  priceRange,  "hasPatterns": coalesce(hasPatterns, false),  "availability": coalesce(availability, "disponible"),      "slug": slug.current,      dimensions,      "features": coalesce(features, []),      "category": category->{title, "slug": slug.current}    },    "similar": *[_type == "pattern" && family._ref == ^.family._ref && _id != ^._id && availability != "epuise"]      | order(code asc)[0...8]{   _id,  code,  name,  "availability": coalesce(availability, "disponible"),  priceOverride,  "productId": product._ref,  // Photo principale = 1re du champ « Photos » (ancien champ « image » en secours).  "image": coalesce(photos[0], image){  asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},  "photos": coalesce(photos[]{ _key,   asset,  crop,  hotspot,  "lqip": asset->metadata.lqip,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height, caption, "isRender": coalesce(isRender, false) }, []) }  }
+export type PATTERN_PAGE_QUERY_RESULT = {
+  _id: string;
+  code: string | null;
+  name: string | null;
+  availability: "disponible" | "epuise" | "sur_commande";
+  priceOverride: number | null;
+  productId: string | null;
+  image: {
+    asset: SanityImageAssetReference | null;
+    crop: SanityImageCrop | null;
+    hotspot: SanityImageHotspot | null;
+    lqip: string | null;
+    width: number | null;
+    height: number | null;
+  } | null;
+  photos:
+    | Array<{
+        _key: string;
+        asset: SanityImageAssetReference | null;
+        crop: SanityImageCrop | null;
+        hotspot: SanityImageHotspot | null;
+        lqip: string | null;
+        width: number | null;
+        height: number | null;
+        caption: string | null;
+        isRender: boolean | false;
+      }>
+    | Array<never>;
+  familySlug: string | null;
+  familyTitle: string | null;
+  product: {
+    _id: string;
+    title: string | null;
+    unit:
+      | "bombe"
+      | "feuille"
+      | "m2"
+      | "metre"
+      | "paquet"
+      | "piece"
+      | "rouleau"
+      | null;
+    priceTiers:
+      | Array<{
+          minQty: number | null;
+          unitPrice: number | null;
+        }>
+      | Array<never>;
+    priceRange: {
+      min?: number;
+      max?: number;
+    } | null;
+    hasPatterns: boolean | false;
+    availability: "disponible" | "epuise" | "sur_commande";
+    slug: string | null;
+    dimensions: string | null;
+    features: Array<string> | Array<never>;
+    category: {
+      title: string | null;
+      slug: string | null;
+    } | null;
+  } | null;
+  similar: Array<{
+    _id: string;
+    code: string | null;
+    name: string | null;
+    availability: "disponible" | "epuise" | "sur_commande";
+    priceOverride: number | null;
+    productId: string | null;
+    image: {
       asset: SanityImageAssetReference | null;
       crop: SanityImageCrop | null;
       hotspot: SanityImageHotspot | null;
@@ -1032,24 +1156,47 @@ export type CART_CATALOG_QUERY_RESULT = {
       width: number | null;
       height: number | null;
     } | null;
-    familySlug: string | null;
+    photos:
+      | Array<{
+          _key: string;
+          asset: SanityImageAssetReference | null;
+          crop: SanityImageCrop | null;
+          hotspot: SanityImageHotspot | null;
+          lqip: string | null;
+          width: number | null;
+          height: number | null;
+          caption: string | null;
+          isRender: boolean | false;
+        }>
+      | Array<never>;
   }>;
-};
+} | null;
+
+// Source: sanity/lib/queries.ts
+// Variable: PATTERN_PATHS_QUERY
+// Query: *[_type == "pattern" && defined(code) && product->category->isVisible != false]{    "category": product->category->slug.current,    "product": product->slug.current,    code  }
+export type PATTERN_PATHS_QUERY_RESULT = Array<{
+  category: string | null;
+  product: string | null;
+  code: string | null;
+}>;
 
 // Query TypeMap
 declare global {
   interface SanityQueries {
     '\n  *[_type == "siteSettings"][0]{\n    "shopName": coalesce(shopName, "Rev\xEAt & D\xE9co"),\n    "tagline": coalesce(tagline, "La r\xE9novation \xE0 petit budget"),\n    whatsappNumber,\n    address,\n    openingHours,\n    mapUrl,\n    socials,\n    announcement,\n    "defaultWasteMargin": coalesce(defaultWasteMargin, 0.1)\n  }\n': SETTINGS_QUERY_RESULT;
     '\n  *[_type == "category" && isVisible != false && defined(slug.current)] | order(order asc, title asc){\n    _id,\n    title,\n    "label": coalesce(navLabel, title),\n    "products": *[_type == "product" && category._ref == ^._id && defined(slug.current)] | order(order asc, title asc){\n      _id,\n      title,\n      "slug": slug.current\n    },\n    "slug": slug.current,\n    "isSeasonal": coalesce(isSeasonal, false)\n  }\n': NAV_CATEGORIES_QUERY_RESULT;
-    '{\n  "whyUsImage": *[_type == "siteSettings"][0].whyUsImage{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n, alt},\n  "heroSlides": coalesce(*[_type == "siteSettings"][0].heroSlides[]{\n    _key,\n    _type,\n    caption,\n    alt,\n    _type == "image" => { \n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n },\n    _type == "heroVideo" => {\n      "mp4": mp4.asset->url,\n      "av1": av1.asset->url,\n      "poster": poster{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n}\n    }\n  }, []),\n  "categories": *[_type == "category" && isVisible != false && defined(slug.current)] | order(order asc, title asc){\n    _id,\n    title,\n    "slug": slug.current,\n    description,\n    "isSeasonal": coalesce(isSeasonal, false),\n    "image": image{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n    "productCount": count(*[_type == "product" && category._ref == ^._id])\n  },\n  "featuredProducts": *[_type == "product" && isFeatured == true && category->isVisible != false]\n    | order(order asc, title asc)[0...16]{\n  \n  _id,\n  title,\n  unit,\n  "priceTiers": coalesce(priceTiers[]{minQty, unitPrice}, []),\n  priceRange,\n  "hasPatterns": coalesce(hasPatterns, false),\n  "availability": coalesce(availability, "disponible")\n,\n  "slug": slug.current,\n  "categorySlug": category->slug.current,\n  shortDescription,\n  dimensions,\n  "features": coalesce(features, []),\n  "mainImage": mainImage{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n  "patternCount": count(*[_type == "pattern" && product._ref == ^._id])\n},\n  "featuredPatterns": *[_type == "pattern" && isFeatured == true && availability != "epuise"]\n    | order(code asc)[0...24]{\n      \n  _id,\n  code,\n  name,\n  "availability": coalesce(availability, "disponible"),\n  priceOverride,\n  "productId": product._ref,\n  "image": image{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n  "roomImage": roomImage{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n}\n,\n      "productSlug": product->slug.current,\n      "categorySlug": product->category->slug.current,\n      "familySlug": family->slug.current\n    }\n}': HOME_QUERY_RESULT;
-    '\n  *[_type == "category" && isVisible != false && defined(slug.current) && slug.current == $category][0]{\n    _id,\n    title,\n    "slug": slug.current,\n    description,\n    "image": image{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n    "products": *[_type == "product" && category._ref == ^._id] | order(order asc, title asc){\n      \n  \n  _id,\n  title,\n  unit,\n  "priceTiers": coalesce(priceTiers[]{minQty, unitPrice}, []),\n  priceRange,\n  "hasPatterns": coalesce(hasPatterns, false),\n  "availability": coalesce(availability, "disponible")\n,\n  "slug": slug.current,\n  "categorySlug": category->slug.current,\n  shortDescription,\n  dimensions,\n  "features": coalesce(features, []),\n  "mainImage": mainImage{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n  "patternCount": count(*[_type == "pattern" && product._ref == ^._id])\n,\n      "patterns": *[_type == "pattern" && product._ref == ^._id] | order(family->order asc, code asc){\n        \n  _id,\n  code,\n  name,\n  "availability": coalesce(availability, "disponible"),\n  priceOverride,\n  "productId": product._ref,\n  "image": image{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n  "roomImage": roomImage{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n}\n,\n        "familySlug": family->slug.current,\n        "familyTitle": family->title\n      }\n    }\n  }\n': CATEGORY_QUERY_RESULT;
+    '{\n  "whyUsImage": *[_type == "siteSettings"][0].whyUsImage{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n, alt},\n  "heroSlides": coalesce(*[_type == "siteSettings"][0].heroSlides[]{\n    _key,\n    _type,\n    caption,\n    alt,\n    _type == "image" => { \n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n },\n    _type == "heroVideo" => {\n      "mp4": mp4.asset->url,\n      "av1": av1.asset->url,\n      "poster": poster{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n}\n    }\n  }, []),\n  "categories": *[_type == "category" && isVisible != false && defined(slug.current)] | order(order asc, title asc){\n    _id,\n    title,\n    "slug": slug.current,\n    description,\n    "isSeasonal": coalesce(isSeasonal, false),\n    "image": image{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n    "productCount": count(*[_type == "product" && category._ref == ^._id])\n  },\n  "featuredProducts": *[_type == "product" && isFeatured == true && category->isVisible != false]\n    | order(order asc, title asc)[0...16]{\n  \n  _id,\n  title,\n  unit,\n  "priceTiers": coalesce(priceTiers[]{minQty, unitPrice}, []),\n  priceRange,\n  "hasPatterns": coalesce(hasPatterns, false),\n  "availability": coalesce(availability, "disponible")\n,\n  "slug": slug.current,\n  "categorySlug": category->slug.current,\n  shortDescription,\n  dimensions,\n  "features": coalesce(features, []),\n  "mainImage": mainImage{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n  "patternCount": count(*[_type == "pattern" && product._ref == ^._id])\n},\n  "featuredPatterns": *[_type == "pattern" && isFeatured == true && availability != "epuise"]\n    | order(code asc)[0...24]{\n      \n  _id,\n  code,\n  name,\n  "availability": coalesce(availability, "disponible"),\n  priceOverride,\n  "productId": product._ref,\n  // Photo principale = 1re du champ \xAB Photos \xBB (ancien champ \xAB image \xBB en secours).\n  "image": coalesce(photos[0], image){\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n  "photos": coalesce(photos[]{ _key, \n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n, caption, "isRender": coalesce(isRender, false) }, [])\n,\n      "productSlug": product->slug.current,\n      "categorySlug": product->category->slug.current,\n      "familySlug": family->slug.current\n    }\n}': HOME_QUERY_RESULT;
+    '\n  *[_type == "category" && isVisible != false && defined(slug.current) && slug.current == $category][0]{\n    _id,\n    title,\n    "slug": slug.current,\n    description,\n    "image": image{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n    "products": *[_type == "product" && category._ref == ^._id] | order(order asc, title asc){\n      \n  \n  _id,\n  title,\n  unit,\n  "priceTiers": coalesce(priceTiers[]{minQty, unitPrice}, []),\n  priceRange,\n  "hasPatterns": coalesce(hasPatterns, false),\n  "availability": coalesce(availability, "disponible")\n,\n  "slug": slug.current,\n  "categorySlug": category->slug.current,\n  shortDescription,\n  dimensions,\n  "features": coalesce(features, []),\n  "mainImage": mainImage{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n  "patternCount": count(*[_type == "pattern" && product._ref == ^._id])\n,\n      "patterns": *[_type == "pattern" && product._ref == ^._id] | order(family->order asc, code asc){\n        \n  _id,\n  code,\n  name,\n  "availability": coalesce(availability, "disponible"),\n  priceOverride,\n  "productId": product._ref,\n  // Photo principale = 1re du champ \xAB Photos \xBB (ancien champ \xAB image \xBB en secours).\n  "image": coalesce(photos[0], image){\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n  "photos": coalesce(photos[]{ _key, \n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n, caption, "isRender": coalesce(isRender, false) }, [])\n,\n        "familySlug": family->slug.current,\n        "familyTitle": family->title\n      }\n    }\n  }\n': CATEGORY_QUERY_RESULT;
     '\n  *[_type == "category" && isVisible != false && defined(slug.current)]{ "category": slug.current }\n': CATEGORY_SLUGS_QUERY_RESULT;
-    '\n  *[_type == "product" && slug.current == $product && category->slug.current == $category && category->isVisible != false][0]{\n    \n  \n  _id,\n  title,\n  unit,\n  "priceTiers": coalesce(priceTiers[]{minQty, unitPrice}, []),\n  priceRange,\n  "hasPatterns": coalesce(hasPatterns, false),\n  "availability": coalesce(availability, "disponible")\n,\n  "slug": slug.current,\n  "categorySlug": category->slug.current,\n  shortDescription,\n  dimensions,\n  "features": coalesce(features, []),\n  "mainImage": mainImage{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n  "patternCount": count(*[_type == "pattern" && product._ref == ^._id])\n,\n    "category": category->{title, "slug": slug.current},\n    description,\n    installTips,\n    coveragePerUnit,\n    wasteMargin,\n    "gallery": gallery[]{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n, caption},\n    "families": *[_type == "patternFamily" && product._ref == ^._id] | order(order asc, title asc){\n      _id,\n      title,\n      "slug": slug.current,\n      "coverImage": coalesce(\n        coverImage,\n        *[_type == "pattern" && family._ref == ^._id] | order(code asc)[0].image\n      ){\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n      "patternCount": count(*[_type == "pattern" && family._ref == ^._id])\n    },\n    "patterns": *[_type == "pattern" && product._ref == ^._id] | order(family->order asc, code asc){\n      \n  _id,\n  code,\n  name,\n  "availability": coalesce(availability, "disponible"),\n  priceOverride,\n  "productId": product._ref,\n  "image": image{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n  "roomImage": roomImage{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n}\n,\n      "familySlug": family->slug.current\n    }\n  }\n': PRODUCT_QUERY_RESULT;
+    '\n  *[_type == "product" && slug.current == $product && category->slug.current == $category && category->isVisible != false][0]{\n    \n  \n  _id,\n  title,\n  unit,\n  "priceTiers": coalesce(priceTiers[]{minQty, unitPrice}, []),\n  priceRange,\n  "hasPatterns": coalesce(hasPatterns, false),\n  "availability": coalesce(availability, "disponible")\n,\n  "slug": slug.current,\n  "categorySlug": category->slug.current,\n  shortDescription,\n  dimensions,\n  "features": coalesce(features, []),\n  "mainImage": mainImage{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n  "patternCount": count(*[_type == "pattern" && product._ref == ^._id])\n,\n    "category": category->{title, "slug": slug.current},\n    description,\n    installTips,\n    coveragePerUnit,\n    wasteMargin,\n    "gallery": gallery[]{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n, caption},\n    "families": *[_type == "patternFamily" && product._ref == ^._id] | order(order asc, title asc){\n      _id,\n      title,\n      "slug": slug.current,\n      "coverImage": coalesce(\n        coverImage,\n        coalesce(*[_type == "pattern" && family._ref == ^._id] | order(code asc)[0].photos[0], *[_type == "pattern" && family._ref == ^._id] | order(code asc)[0].image)\n      ){\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n      "patternCount": count(*[_type == "pattern" && family._ref == ^._id])\n    },\n    "patterns": *[_type == "pattern" && product._ref == ^._id] | order(family->order asc, code asc){\n      \n  _id,\n  code,\n  name,\n  "availability": coalesce(availability, "disponible"),\n  priceOverride,\n  "productId": product._ref,\n  // Photo principale = 1re du champ \xAB Photos \xBB (ancien champ \xAB image \xBB en secours).\n  "image": coalesce(photos[0], image){\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n  "photos": coalesce(photos[]{ _key, \n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n, caption, "isRender": coalesce(isRender, false) }, [])\n,\n      "familySlug": family->slug.current\n    }\n  }\n': PRODUCT_QUERY_RESULT;
     '\n  *[_type == "product" && defined(slug.current) && category->isVisible != false]{\n    "category": category->slug.current,\n    "product": slug.current\n  }\n': PRODUCT_PATHS_QUERY_RESULT;
-    '\n  *[_type == "patternFamily" && slug.current == $family\n    && product->slug.current == $product\n    && product->category->slug.current == $category][0]{\n    _id,\n    title,\n    "slug": slug.current,\n    "product": product->{\n      \n  _id,\n  title,\n  unit,\n  "priceTiers": coalesce(priceTiers[]{minQty, unitPrice}, []),\n  priceRange,\n  "hasPatterns": coalesce(hasPatterns, false),\n  "availability": coalesce(availability, "disponible")\n,\n      "slug": slug.current,\n      dimensions,\n      "features": coalesce(features, []),\n      coveragePerUnit,\n      "category": category->{title, "slug": slug.current}\n    },\n    "otherFamilies": *[_type == "patternFamily" && product._ref == ^.product._ref && _id != ^._id]\n      | order(order asc, title asc){ title, "slug": slug.current },\n    "patterns": *[_type == "pattern" && family._ref == ^._id] | order(code asc){\n  _id,\n  code,\n  name,\n  "availability": coalesce(availability, "disponible"),\n  priceOverride,\n  "productId": product._ref,\n  "image": image{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n  "roomImage": roomImage{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n}\n}\n  }\n': FAMILY_QUERY_RESULT;
+    '\n  *[_type == "patternFamily" && slug.current == $family\n    && product->slug.current == $product\n    && product->category->slug.current == $category][0]{\n    _id,\n    title,\n    "slug": slug.current,\n    "product": product->{\n      \n  _id,\n  title,\n  unit,\n  "priceTiers": coalesce(priceTiers[]{minQty, unitPrice}, []),\n  priceRange,\n  "hasPatterns": coalesce(hasPatterns, false),\n  "availability": coalesce(availability, "disponible")\n,\n      "slug": slug.current,\n      dimensions,\n      "features": coalesce(features, []),\n      coveragePerUnit,\n      "category": category->{title, "slug": slug.current}\n    },\n    "otherFamilies": *[_type == "patternFamily" && product._ref == ^.product._ref && _id != ^._id]\n      | order(order asc, title asc){ title, "slug": slug.current },\n    "patterns": *[_type == "pattern" && family._ref == ^._id] | order(code asc){\n  _id,\n  code,\n  name,\n  "availability": coalesce(availability, "disponible"),\n  priceOverride,\n  "productId": product._ref,\n  // Photo principale = 1re du champ \xAB Photos \xBB (ancien champ \xAB image \xBB en secours).\n  "image": coalesce(photos[0], image){\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n  "photos": coalesce(photos[]{ _key, \n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n, caption, "isRender": coalesce(isRender, false) }, [])\n}\n  }\n': FAMILY_QUERY_RESULT;
     '\n  *[_type == "patternFamily" && defined(slug.current) && product->category->isVisible != false]{\n    "category": product->category->slug.current,\n    "product": product->slug.current,\n    "family": slug.current\n  }\n': FAMILY_PATHS_QUERY_RESULT;
-    '{\n  "patterns": *[_type == "pattern" && (code == $code || code match $term || name match $term)]\n    | order(code asc)[0...48]{\n      \n  _id,\n  code,\n  name,\n  "availability": coalesce(availability, "disponible"),\n  priceOverride,\n  "productId": product._ref,\n  "image": image{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n  "roomImage": roomImage{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n}\n,\n      "productTitle": product->title,\n      "productSlug": product->slug.current,\n      "categorySlug": product->category->slug.current,\n      "familySlug": family->slug.current\n    },\n  "products": *[_type == "product" && category->isVisible != false && (title match $term || shortDescription match $term)]\n    | order(order asc)[0...12]{\n  \n  _id,\n  title,\n  unit,\n  "priceTiers": coalesce(priceTiers[]{minQty, unitPrice}, []),\n  priceRange,\n  "hasPatterns": coalesce(hasPatterns, false),\n  "availability": coalesce(availability, "disponible")\n,\n  "slug": slug.current,\n  "categorySlug": category->slug.current,\n  shortDescription,\n  dimensions,\n  "features": coalesce(features, []),\n  "mainImage": mainImage{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n  "patternCount": count(*[_type == "pattern" && product._ref == ^._id])\n}\n}': SEARCH_QUERY_RESULT;
-    '{\n  "products": *[_type == "product" && _id in $productIds]{\n    \n  _id,\n  title,\n  unit,\n  "priceTiers": coalesce(priceTiers[]{minQty, unitPrice}, []),\n  priceRange,\n  "hasPatterns": coalesce(hasPatterns, false),\n  "availability": coalesce(availability, "disponible")\n,\n    "slug": slug.current,\n    "categorySlug": category->slug.current,\n    "mainImage": mainImage{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n}\n  },\n  "patterns": *[_type == "pattern" && code in $codes]{\n    \n  _id,\n  code,\n  name,\n  "availability": coalesce(availability, "disponible"),\n  priceOverride,\n  "productId": product._ref,\n  "image": image{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n  "roomImage": roomImage{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n}\n,\n    "familySlug": family->slug.current\n  }\n}': CART_CATALOG_QUERY_RESULT;
+    '{\n  "patterns": *[_type == "pattern" && (code == $code || code match $term || name match $term)]\n    | order(code asc)[0...48]{\n      \n  _id,\n  code,\n  name,\n  "availability": coalesce(availability, "disponible"),\n  priceOverride,\n  "productId": product._ref,\n  // Photo principale = 1re du champ \xAB Photos \xBB (ancien champ \xAB image \xBB en secours).\n  "image": coalesce(photos[0], image){\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n  "photos": coalesce(photos[]{ _key, \n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n, caption, "isRender": coalesce(isRender, false) }, [])\n,\n      "productTitle": product->title,\n      "productSlug": product->slug.current,\n      "categorySlug": product->category->slug.current,\n      "familySlug": family->slug.current\n    },\n  "products": *[_type == "product" && category->isVisible != false && (title match $term || shortDescription match $term)]\n    | order(order asc)[0...12]{\n  \n  _id,\n  title,\n  unit,\n  "priceTiers": coalesce(priceTiers[]{minQty, unitPrice}, []),\n  priceRange,\n  "hasPatterns": coalesce(hasPatterns, false),\n  "availability": coalesce(availability, "disponible")\n,\n  "slug": slug.current,\n  "categorySlug": category->slug.current,\n  shortDescription,\n  dimensions,\n  "features": coalesce(features, []),\n  "mainImage": mainImage{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n  "patternCount": count(*[_type == "pattern" && product._ref == ^._id])\n}\n}': SEARCH_QUERY_RESULT;
+    '{\n  "products": *[_type == "product" && _id in $productIds]{\n    \n  _id,\n  title,\n  unit,\n  "priceTiers": coalesce(priceTiers[]{minQty, unitPrice}, []),\n  priceRange,\n  "hasPatterns": coalesce(hasPatterns, false),\n  "availability": coalesce(availability, "disponible")\n,\n    "slug": slug.current,\n    "categorySlug": category->slug.current,\n    "mainImage": mainImage{\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n}\n  },\n  "patterns": *[_type == "pattern" && code in $codes]{\n    \n  _id,\n  code,\n  name,\n  "availability": coalesce(availability, "disponible"),\n  priceOverride,\n  "productId": product._ref,\n  // Photo principale = 1re du champ \xAB Photos \xBB (ancien champ \xAB image \xBB en secours).\n  "image": coalesce(photos[0], image){\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n  "photos": coalesce(photos[]{ _key, \n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n, caption, "isRender": coalesce(isRender, false) }, [])\n,\n    "familySlug": family->slug.current\n  }\n}': CART_CATALOG_QUERY_RESULT;
+    '\n  *[_type == "pattern" && code == $code\n    && product->slug.current == $product\n    && product->category->slug.current == $category\n    && product->category->isVisible != false][0]{\n    \n  _id,\n  code,\n  name,\n  "availability": coalesce(availability, "disponible"),\n  priceOverride,\n  "productId": product._ref,\n  // Photo principale = 1re du champ \xAB Photos \xBB (ancien champ \xAB image \xBB en secours).\n  "image": coalesce(photos[0], image){\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n  "photos": coalesce(photos[]{ _key, \n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n, caption, "isRender": coalesce(isRender, false) }, [])\n,\n    "familySlug": family->slug.current,\n    "familyTitle": family->title,\n    "product": product->{\n      \n  _id,\n  title,\n  unit,\n  "priceTiers": coalesce(priceTiers[]{minQty, unitPrice}, []),\n  priceRange,\n  "hasPatterns": coalesce(hasPatterns, false),\n  "availability": coalesce(availability, "disponible")\n,\n      "slug": slug.current,\n      dimensions,\n      "features": coalesce(features, []),\n      "category": category->{title, "slug": slug.current}\n    },\n    "similar": *[_type == "pattern" && family._ref == ^.family._ref && _id != ^._id && availability != "epuise"]\n      | order(code asc)[0...8]{ \n  _id,\n  code,\n  name,\n  "availability": coalesce(availability, "disponible"),\n  priceOverride,\n  "productId": product._ref,\n  // Photo principale = 1re du champ \xAB Photos \xBB (ancien champ \xAB image \xBB en secours).\n  "image": coalesce(photos[0], image){\n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n  "photos": coalesce(photos[]{ _key, \n  asset,\n  crop,\n  hotspot,\n  "lqip": asset->metadata.lqip,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n, caption, "isRender": coalesce(isRender, false) }, [])\n }\n  }\n': PATTERN_PAGE_QUERY_RESULT;
+    '\n  *[_type == "pattern" && defined(code) && product->category->isVisible != false]{\n    "category": product->category->slug.current,\n    "product": product->slug.current,\n    code\n  }\n': PATTERN_PATHS_QUERY_RESULT;
   }
 }
 // Lets @sanity/client releases that predate the global registry read it too

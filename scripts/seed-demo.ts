@@ -180,7 +180,7 @@ async function seed(client: SanityClient) {
           name: pat.name,
           product: ref(ID.product(p.slug)),
           family: ref(familyId),
-          image: image(assetByKey.get(pat.code)!),
+          photos: [{ ...image(assetByKey.get(pat.code)!), _key: 'p0' }],
           availability: pat.availability ?? 'disponible',
           isFeatured: Boolean(pat.isFeatured),
           ...(pat.priceOverride != null ? { priceOverride: pat.priceOverride } : {}),

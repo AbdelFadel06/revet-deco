@@ -43,3 +43,8 @@ next-env.d.ts
 
 # Médias originaux de la boutique (lourds, non versionnés)
 /media-source
+
+# Cloudflare / OpenNext
+/.open-next
+/.wrangler
+.dev.vars

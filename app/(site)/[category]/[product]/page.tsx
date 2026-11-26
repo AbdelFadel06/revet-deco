@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
+import { BrandLoader } from '@/components/ui/BrandLoader'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { PortableText } from 'next-sanity'
@@ -34,7 +36,7 @@ export async function generateMetadata({ params }: PageProps<'/[category]/[produ
   }
 }
 
-export default async function ProductPage({ params }: PageProps<'/[category]/[product]'>) {
+async function ProductContent({ params }: { params: PageProps<'/[category]/[product]'>['params'] }) {
   const { category, product } = await params
   const data = await getProduct(category, product)
   if (!data) notFound()
@@ -53,6 +55,7 @@ export default async function ProductPage({ params }: PageProps<'/[category]/[pr
       priceOverride: p.priceOverride ?? null,
       familySlug: p.familySlug,
       image: p.image,
+      photos: p.photos,
     }))
   const families = data.families
     .filter((f) => f.slug)
@@ -133,6 +136,8 @@ export default async function ProductPage({ params }: PageProps<'/[category]/[pr
         <PatternBrowser
           product={{
             id: data._id,
+            slug: product,
+            categorySlug: category,
             title: data.title ?? '',
             unit: pricing.unit,
             priceTiers: pricing.priceTiers,
@@ -152,5 +157,18 @@ export default async function ProductPage({ params }: PageProps<'/[category]/[pr
         </section>
       )}
     </div>
+  )
+}
+
+/**
+ * La lecture de l'adresse (params) est placée sous <Suspense> : la navigation
+ * affiche tout de suite la structure de la page (loader de la boutique), puis
+ * le contenu arrive en flux (navigation instantanée, Cache Components).
+ */
+export default function ProductPage(props: PageProps<'/[category]/[product]'>) {
+  return (
+    <Suspense fallback={<BrandLoader />}>
+      <ProductContent params={props.params} />
+    </Suspense>
   )
 }

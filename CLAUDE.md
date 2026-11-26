@@ -98,7 +98,7 @@ La catégorie Noël doit pouvoir être **mise en avant ou masquée** depuis le S
 1. **Catégorie** (ex. « Revêtement mural », révisé le 2026-11-24) → **tous les motifs et produits de la catégorie** sur une seule page, filtres « Tout voir » + un par produit (puis par famille), « Voir plus » par 24, en-tête léger sur fond blanc. Toucher un motif ouvre directement sa fenêtre (ajout au panier sans passer par la page produit). URL : `?produit=…&famille=…#CODE`. La page produit reste accessible (« Fiche complète »).
 2. **Page produit** (ex. « Papier peint autocollant ») → **tous les motifs directement**, avec des boutons de **famille** pour filtrer (Tous · Marbre · Lambris…). Chaque vignette : photo + **code** bien lisible + nom + prix + badge de disponibilité.
 3. Toucher un motif ouvre une **fenêtre** (bottom sheet sur mobile) : grande photo, code, caractéristiques du produit, prix avec palier, quantité, « Ajouter ».
-- La famille filtrée et le motif ouvert sont dans l'URL (`?famille=marbre#PP-M12`) : liens partageables.
+- **Motif = vraie page** `/categorie/produit/CODE` (décision du 2026-11-24). Depuis une grille, la fenêtre s'ouvre par-dessus avec cette adresse (`pushState`, sans rechargement ; retour = fermeture, filtres conservés). Accès direct (lien partagé, Google) = page dédiée avec galerie, achat, motifs similaires et image d'aperçu WhatsApp/Facebook. Les anciens liens `#CODE` restent compris. Filtres : `?produit=…&famille=…`.
 - Les **caractéristiques** (`features` sur le produit, ex. « 5 m × 60 cm (3 m²) », « Autocollant », « Imperméable ») s'affichent sur le produit et sur chaque motif.
 - Une **recherche par code** est obligatoire : taper `M12` ou `PP-M12` mène directement au motif.
 
@@ -191,7 +191,7 @@ Fichiers dans `sanity/schemaTypes/`. Tous les libellés du Studio sont **en fran
 - `code` (string, **unique, requis**, en majuscules), validation d'unicité via un validateur custom
 - `name` (ex. « Marbre blanc & or »)
 - `product` → ref `product`, `family` → ref `patternFamily`
-- `image` (photo à plat, requise), `roomImage` (photo posée, optionnelle)
+- `photos[]` (décision du 2026-11-24) : une ou plusieurs photos, **la 1re est la photo principale** (grilles, panier) ; ordre modifiable par glisser-déposer ; légende facultative ; `isRender` (« Simulation indicative ») coché automatiquement pour les rendus générés. Les anciens champs `image` / `roomImage` sont masqués, migrés par `scripts/migrations/pattern-photos.ts`.
 - `availability` : `disponible | sur_commande | epuise` (défaut `disponible`)
 - `priceOverride` (optionnel)
 - `isFeatured`
@@ -238,6 +238,7 @@ app/
 │  ├─ page.tsx                          # Accueil : hero, catégories, mises en avant, Noël (saisonnier)
 │  ├─ [category]/page.tsx               # Liste des produits de la catégorie
 │  ├─ [category]/[product]/page.tsx     # Produit : tous les motifs + filtres famille, OU fiche simple + calculateur
+│  ├─ [category]/[product]/[code]/page.tsx  # Page d'un motif (accès direct / partage)
 │  ├─ recherche/page.tsx                # Recherche par nom ou code motif
 │  ├─ panier/page.tsx                   # Panier + bouton WhatsApp
 │  └─ a-propos/page.tsx                 # Boutique, adresse, horaires, carte

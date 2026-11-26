@@ -1,15 +1,16 @@
 'use client'
 
 import Link from 'next/link'
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { SanityImage, type SanityImageData } from '@/components/ui/SanityImage'
 import { useUrlState } from '@/components/ui/useUrlState'
 import { getPriceLabel } from '@/lib/display'
-import { formatPrice, normalizeCode } from '@/lib/format'
+import { formatPrice } from '@/lib/format'
 import { getTierPrice } from '@/lib/pricing'
 import type { PriceTier, Unit } from '@/lib/types'
 import { AvailabilityBadge, FeatureChips } from './badges'
 import { PatternSheet, type BrowserPattern } from './PatternBrowser'
+import { usePatternRoute } from './pattern/usePatternRoute'
 
 export interface CategoryProduct {
   id: string
@@ -39,8 +40,8 @@ const ALL = 'tous'
  * on peut ajouter au panier sans passer par la page produit.
  * État dans l'URL : ?produit=…&famille=…#CODE (liens partageables).
  */
-export function CategoryBrowser({ products }: { products: CategoryProduct[] }) {
-  const { search, hash, update } = useUrlState()
+export function CategoryBrowser({ products, categoryPath }: { products: CategoryProduct[]; categoryPath: string }) {
+  const { search, update } = useUrlState()
 
   const requestedProduct = search.get('produit')
   const activeProduct = products.find((p) => p.slug === requestedProduct) ?? null
@@ -80,8 +81,23 @@ export function CategoryBrowser({ products }: { products: CategoryProduct[] }) {
   const [paging, setPaging] = useState({ key: filterKey, visible: PAGE_SIZE })
   const visible = paging.key === filterKey ? paging.visible : PAGE_SIZE
 
-  // Motif ouvert (#CODE), cherché dans toute la catégorie.
-  const selected = findPattern(products, hash)
+  // Motif ouvert = adresse de sa page (/categorie/produit/CODE), cherché dans toute la catégorie.
+  const productOfCode = useMemo(() => {
+    const map = new Map<string, CategoryProduct>()
+    for (const product of products) for (const p of product.patterns) map.set(p.code, product)
+    return map
+  }, [products])
+  const codes = useMemo(() => [...productOfCode.keys()], [productOfCode])
+  const hrefOf = useCallback(
+    (code: string) => `${productOfCode.get(code)?.href ?? categoryPath}/${encodeURIComponent(code)}`,
+    [productOfCode, categoryPath],
+  )
+  const { selectedCode, open, close } = usePatternRoute(codes, hrefOf, categoryPath)
+  const selectedProduct = selectedCode ? productOfCode.get(selectedCode) : undefined
+  const selected =
+    selectedCode && selectedProduct
+      ? { product: selectedProduct, pattern: selectedProduct.patterns.find((p) => p.code === selectedCode)! }
+      : null
 
   const chooseProduct = (slug: string | null) => update({ params: { produit: slug, famille: null } })
   const chooseFamily = (slug: string | null) => update({ params: { famille: slug } })
@@ -123,7 +139,7 @@ export function CategoryBrowser({ products }: { products: CategoryProduct[] }) {
         {items.slice(0, visible).map((it) => (
           <li key={it.key} id={it.kind === 'pattern' ? it.pattern.code : undefined}>
             {it.kind === 'pattern' ? (
-              <PatternTile item={it} showProduct={!activeProduct} onOpen={() => update({ hash: it.pattern.code })} />
+              <PatternTile item={it} showProduct={!activeProduct} href={hrefOf(it.pattern.code)} onOpen={() => open(it.pattern.code)} />
             ) : (
               <ProductTile product={it.product} />
             )}
@@ -154,7 +170,8 @@ export function CategoryBrowser({ products }: { products: CategoryProduct[] }) {
             features: selected.product.features,
           }}
           pattern={selected.pattern}
-          onClose={() => update({ hash: null })}
+          href={hrefOf(selected.pattern.code)}
+          onClose={close}
         />
       )}
     </section>
@@ -162,16 +179,6 @@ export function CategoryBrowser({ products }: { products: CategoryProduct[] }) {
 }
 
 // ---------------------------------------------------------------------------
-
-function findPattern(products: CategoryProduct[], hash: string) {
-  if (!hash) return null
-  const code = normalizeCode(hash)
-  for (const product of products) {
-    const pattern = product.patterns.find((p) => p.code === code)
-    if (pattern) return { product, pattern }
-  }
-  return null
-}
 
 function Chip({
   label,
@@ -227,17 +234,26 @@ const tileClass =
 function PatternTile({
   item,
   showProduct,
+  href,
   onOpen,
 }: {
   item: Extract<Item, { kind: 'pattern' }>
   showProduct: boolean
+  href: string
   onOpen: () => void
 }) {
   const { pattern: p, product } = item
   const out = p.availability === 'epuise'
   const price = p.priceOverride ?? getTierPrice(product.priceTiers, 1)
   return (
-    <button type="button" onClick={onOpen} className={tileClass}>
+    <a
+      href={href}
+      onClick={(e) => {
+        e.preventDefault()
+        onOpen()
+      }}
+      className={tileClass}
+    >
       <div className="relative overflow-hidden">
         <SanityImage
           image={p.image}
@@ -254,7 +270,7 @@ function PatternTile({
         <p className="truncate text-sm text-brown-700">{p.name}</p>
         <p className="mt-auto pt-1 text-sm font-semibold text-ink-900">{formatPrice(price)}</p>
       </div>
-    </button>
+    </a>
   )
 }
 
